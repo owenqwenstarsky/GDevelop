@@ -136,6 +136,7 @@ export const getInitialPreferences = (): {
   takeScreenshotOnPreview: boolean,
   gameplayTestFramePosition: {| left: number, bottom: number |} | null,
   gameplayTestFrameZoomFactor: number | null,
+  customAi: any,
   themeName: any,
   use3DEditor: any,
   useBackgroundSerializerForSaving: boolean,

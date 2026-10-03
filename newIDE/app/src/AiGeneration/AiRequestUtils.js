@@ -107,6 +107,8 @@ export const getFunctionCallsToProcess = ({
   aiRequest: AiRequest,
   editorFunctionCallResults: Array<EditorFunctionCallResult> | null,
 |}): Array<AiRequestMessageAssistantFunctionCall> => {
+  if (aiRequest.provider === 'custom' && aiRequest.status !== 'ready')
+    return [];
   const functionCallsToProcess: AiRequestMessageAssistantFunctionCall[] = [];
   const appliedFunctionCallIds = new Set<string>();
   const alreadyProcessedFunctionCallIds = new Set<string>();

@@ -228,6 +228,7 @@ export type RenderEditorContainerProps = {|
   canSave: boolean,
 
   // Project versions
+  onRestoreProjectJson?: (projectJson: string) => Promise<void>,
   onCheckoutVersion: (
     version: ExpandedCloudProjectVersion,
     options?: {| dontSaveCheckedOutVersionStatus?: boolean |}

@@ -1,4 +1,5 @@
 // @flow
+import { isCustomRequestId, invokeCustomAi } from '../Providers/CustomAiBridge';
 import * as React from 'react';
 import { t } from '@lingui/macro';
 import AuthenticatedUserContext from '../../Profile/AuthenticatedUserContext';
@@ -38,10 +39,33 @@ const useImageUrls = (attachments: Array<AiRequestAttachment>): ImageUrls => {
       setImageUrls(objectUrls);
 
       let isMounted = true;
-      if (attachmentIdsToDownload.length && profile) {
+      attachmentIdsToDownload
+        .filter(isCustomRequestId)
+        .forEach(async attachmentId => {
+          try {
+            const stored = await invokeCustomAi('attachment-file', {
+              attachmentId,
+            });
+            if (isMounted)
+              setImageUrls(current => ({
+                ...current,
+                [attachmentId]: `data:${stored.mimeType};base64,${
+                  stored.base64
+                }`,
+              }));
+          } catch (error) {
+            console.error('Unable to read a local attachment:', error);
+          }
+        });
+      if (
+        attachmentIdsToDownload.some(id => !isCustomRequestId(id)) &&
+        profile
+      ) {
         createAiAttachmentDownloads(getAuthorizationHeader, {
           userId: profile.id,
-          attachmentIds: attachmentIdsToDownload,
+          attachmentIds: attachmentIdsToDownload.filter(
+            id => !isCustomRequestId(id)
+          ),
         }).then(
           attachmentDownloads => {
             if (!isMounted) return;

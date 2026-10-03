@@ -1,4 +1,18 @@
 // @flow
+import { serializeToJSON } from '../Utils/Serializer';
+import {
+  createAiRequest,
+  addMessageToAiRequest,
+  getAiRequest,
+  retryAiRequest,
+  forkAiRequest,
+} from './Providers/AiProvider';
+import {
+  isCustomAiEnabled,
+  isCustomRequest,
+  isCustomRequestId,
+  invokeCustomAi,
+} from './Providers/CustomAiBridge';
 import * as React from 'react';
 import { type I18n as I18nType } from '@lingui/core';
 import { type MessageDescriptor } from '../Utils/i18n/MessageDescriptor.flow';
@@ -23,12 +37,7 @@ import { AiRequestChat, type AiRequestChatInterface } from './AiRequestChat';
 import { canPayForAiRequest } from './AiRequestChat/Utils';
 import { registerAskAiPrefillListener } from './AskAiPrefill';
 import {
-  addMessageToAiRequest,
-  createAiRequest,
   sendAiRequestFeedback,
-  forkAiRequest,
-  retryAiRequest,
-  getAiRequest,
   type AiRequest,
   type AiRequestMessage,
   type AiRequestMessageAssistantFunctionCall,
@@ -71,7 +80,7 @@ import {
 } from '../Utils/Analytics/EventSender';
 import { listAllExamples } from '../Utils/GDevelopServices/Example';
 import UrlStorageProvider from '../ProjectsStorage/UrlStorageProvider';
-import { prepareAiUserContent } from './PrepareAiUserContent';
+import { prepareProviderUserContent } from './Providers/PrepareUserContent';
 import { AiRequestContext } from './AiRequestContext';
 import { getAiConfigurationPresetsWithAvailability } from './AiConfiguration';
 import {
@@ -204,6 +213,7 @@ type Props = {|
   gameEditorMode: 'embedded-game' | 'instances-editor',
   continueProcessingFunctionCallsOnMount?: boolean,
   onOpenAskAi: (?OpenAskAiOptions) => void,
+  onRestoreProjectJson?: (projectJson: string) => Promise<void>,
   onCheckoutVersion: (
     version: ExpandedCloudProjectVersion,
     options?: {| dontSaveCheckedOutVersionStatus?: boolean |}
@@ -314,6 +324,7 @@ export const AskAiEditor: React.ComponentType<Props> = React.memo<Props>(
         onOpenAskAi,
         gameEditorMode,
         continueProcessingFunctionCallsOnMount,
+        onRestoreProjectJson,
         onCheckoutVersion,
         getOrLoadProjectVersion,
         onSave,
@@ -602,7 +613,7 @@ export const AskAiEditor: React.ComponentType<Props> = React.memo<Props>(
       // we display the proper quota and credits information for the user.
       React.useEffect(
         () => {
-          if (isActive && profile) {
+          if (isActive && profile && !isCustomAiEnabled()) {
             refreshLimits();
           }
         },
@@ -618,7 +629,7 @@ export const AskAiEditor: React.ComponentType<Props> = React.memo<Props>(
             if (!newAiRequestOptions) return;
             console.info('Starting a new AI request...');
 
-            if (!profile) {
+            if (!profile && !isCustomAiEnabled()) {
               onOpenCreateAccountDialog();
               startNewAiRequest(null);
               return;
@@ -636,12 +647,18 @@ export const AskAiEditor: React.ComponentType<Props> = React.memo<Props>(
             // Ensure the user has enough credits to pay for the request, or ask them
             // to buy some more.
             let payWithCredits = false;
-            if (quota && quota.limitReached && aiRequestPriceInCredits) {
+            if (
+              !isCustomAiEnabled() &&
+              quota &&
+              quota.limitReached &&
+              aiRequestPriceInCredits
+            ) {
               payWithCredits = true;
             }
             // The same rule as the one enabling the send button, so the button
             // can't offer to send a request this would silently drop.
             if (
+              !isCustomAiEnabled() &&
               !canPayForAiRequest({
                 quota,
                 price: aiRequestPrice,
@@ -671,18 +688,21 @@ export const AskAiEditor: React.ComponentType<Props> = React.memo<Props>(
               setSendingAiRequest(null, true);
               setIsSendingUserMessage(true);
 
-              const preparedAiUserContent = await prepareAiUserContent({
-                getAuthorizationHeader,
-                userId: profile.id,
-                simplifiedProjectJson,
-                projectSpecificExtensionsSummaryJson,
-                eventsJson: null,
-              });
+              const preparedAiUserContent = await prepareProviderUserContent(
+                isCustomAiEnabled(),
+                {
+                  getAuthorizationHeader,
+                  userId: profile ? profile.id : 'local',
+                  simplifiedProjectJson,
+                  projectSpecificExtensionsSummaryJson,
+                  eventsJson: null,
+                }
+              );
 
               const aiRequest = await createAiRequest(getAuthorizationHeader, {
                 userRequest: userRequest,
                 attachmentIds,
-                userId: profile.id,
+                userId: profile ? profile.id : 'local',
                 gameProjectJsonUserRelativeKey:
                   preparedAiUserContent.gameProjectJsonUserRelativeKey,
                 gameProjectJson: preparedAiUserContent.gameProjectJson,
@@ -740,7 +760,7 @@ export const AskAiEditor: React.ComponentType<Props> = React.memo<Props>(
             // Refresh the user limits, to ensure quota and credits information
             // is up-to-date after an AI request.
             await delay(500);
-            await refreshLimits({ withRetry: true });
+            if (!isCustomAiEnabled()) await refreshLimits({ withRetry: true });
           })();
         },
         [
@@ -787,7 +807,7 @@ export const AskAiEditor: React.ComponentType<Props> = React.memo<Props>(
           createdProject?: ?gdProject,
           editorFunctionCallResults: Array<EditorFunctionCallResult>,
         |}) => {
-          if (!profile) return;
+          if (!profile && !isCustomRequestId(aiRequestId)) return;
           // Files can be sent without any text.
           const hasUserMessage =
             !!userMessage || !!(attachmentIds && attachmentIds.length);
@@ -838,6 +858,7 @@ export const AskAiEditor: React.ComponentType<Props> = React.memo<Props>(
           // Paying with credits is only when a user message is sent (and quota is exhausted).
           let payWithCredits = false;
           if (
+            !isCustomRequestId(aiRequestId) &&
             hasUserMessage &&
             quota &&
             quota.limitReached &&
@@ -885,13 +906,16 @@ export const AskAiEditor: React.ComponentType<Props> = React.memo<Props>(
                 )
               : null;
 
-            const preparedAiUserContent = await prepareAiUserContent({
-              getAuthorizationHeader,
-              userId: profile.id,
-              simplifiedProjectJson,
-              projectSpecificExtensionsSummaryJson,
-              eventsJson: null,
-            });
+            const preparedAiUserContent = await prepareProviderUserContent(
+              isCustomRequestId(aiRequestId),
+              {
+                getAuthorizationHeader,
+                userId: profile ? profile.id : 'local',
+                simplifiedProjectJson,
+                projectSpecificExtensionsSummaryJson,
+                eventsJson: null,
+              }
+            );
 
             if (
               editorFunctionCallResults &&
@@ -905,7 +929,7 @@ export const AskAiEditor: React.ComponentType<Props> = React.memo<Props>(
 
             const aiRequest: AiRequest = await retryIfFailed({ times: 2 }, () =>
               addMessageToAiRequest(getAuthorizationHeader, {
-                userId: profile.id,
+                userId: profile ? profile.id : 'local',
                 aiRequestId,
                 functionCallOutputs,
                 gameProjectJsonUserRelativeKey:
@@ -971,7 +995,8 @@ export const AskAiEditor: React.ComponentType<Props> = React.memo<Props>(
           // Refresh the user limits, to ensure quota and credits information
           // is up-to-date after an AI request.
           await delay(500);
-          await refreshLimits({ withRetry: true });
+          if (!isCustomRequestId(aiRequestId))
+            await refreshLimits({ withRetry: true });
 
           if (createdSceneNames && createdSceneNames.length > 0) {
             createdSceneNames.forEach(sceneName => {
@@ -1021,10 +1046,14 @@ export const AskAiEditor: React.ComponentType<Props> = React.memo<Props>(
       // charges back the usage it refunded when the request failed).
       const onRetryAfterError = React.useCallback(
         async () => {
-          if (!selectedAiRequestId || !profile) return;
+          if (
+            !selectedAiRequestId ||
+            (!profile && !isCustomRequestId(selectedAiRequestId))
+          )
+            return;
           try {
             const aiRequest = await retryAiRequest(getAuthorizationHeader, {
-              userId: profile.id,
+              userId: profile ? profile.id : 'local',
               aiRequestId: selectedAiRequestId,
             });
             updateAiRequest(aiRequest.id, () => aiRequest);
@@ -1253,11 +1282,11 @@ export const AskAiEditor: React.ComponentType<Props> = React.memo<Props>(
           // $FlowFixMe[missing-local-annot]
           freeFormDetails
         ) => {
-          if (!profile) return;
+          if (!profile || isCustomRequestId(aiRequestId)) return;
           try {
             await retryIfFailed({ times: 2 }, () =>
               sendAiRequestFeedback(getAuthorizationHeader, {
-                userId: profile.id,
+                userId: profile ? profile.id : 'local',
                 aiRequestId,
                 messageIndex,
                 feedback,
@@ -1414,10 +1443,14 @@ export const AskAiEditor: React.ComponentType<Props> = React.memo<Props>(
       // the tab was closed).
       React.useEffect(
         () => {
-          if (!selectedAiRequest || !profile) return;
+          if (
+            !selectedAiRequest ||
+            (!profile && !isCustomRequest(selectedAiRequest))
+          )
+            return;
           retryIfFailed({ times: 2 }, () =>
             getAiRequest(getAuthorizationHeader, {
-              userId: profile.id,
+              userId: profile ? profile.id : 'local',
               aiRequestId: selectedAiRequest.id,
             })
           )
@@ -1446,6 +1479,41 @@ export const AskAiEditor: React.ComponentType<Props> = React.memo<Props>(
           message: AiRequestMessage,
           aiRequest: AiRequest,
         |}) => {
+          if (isCustomRequest(aiRequest)) {
+            if (
+              !project ||
+              project.getProjectUuid() !== aiRequest.gameId ||
+              !onRestoreProjectJson
+            ) {
+              await showAlert({
+                title: t`Cannot restore project`,
+                message: t`Open the project associated with this conversation to restore its checkpoint.`,
+              });
+              return;
+            }
+            const checkpointId =
+              message.type === 'message' && message.role === 'user'
+                ? message.projectVersionIdBeforeMessage
+                : message.type === 'function_call_output' ||
+                  message.role === 'assistant'
+                ? message.projectVersionIdAfterMessage
+                : null;
+            if (!checkpointId) return;
+            const accepted = await showConfirmation({
+              title: t`Restore local checkpoint?`,
+              message: t`The current project will be checkpointed first. Restoring changes project structure; external resource files are not rolled back.`,
+              confirmButtonLabel: t`Restore`,
+              dismissButtonLabel: t`Cancel`,
+            });
+            if (!accepted) return;
+            const projectJson = await invokeCustomAi('restore-checkpoint', {
+              aiRequestId: aiRequest.id,
+              checkpointId,
+              currentProjectJson: serializeToJSON(project),
+            });
+            await onRestoreProjectJson(projectJson);
+            return;
+          }
           if (!profile) return;
           const cloudProjectId = storageProvider
             ? getCloudProjectFileMetadataIdentifier(
@@ -1642,7 +1710,7 @@ export const AskAiEditor: React.ComponentType<Props> = React.memo<Props>(
                     { times: 2 },
                     () =>
                       forkAiRequest(getAuthorizationHeader, {
-                        userId: profile.id,
+                        userId: profile ? profile.id : 'local',
                         aiRequestId: aiRequest.id,
                         upToMessageId: forkToMessageId || undefined,
                       })
@@ -1683,6 +1751,7 @@ export const AskAiEditor: React.ComponentType<Props> = React.memo<Props>(
           showAlert,
           showConfirmation,
           onCheckoutVersion,
+          onRestoreProjectJson,
           getOrLoadProjectVersion,
           profile,
           getAuthorizationHeader,
@@ -1855,6 +1924,7 @@ export const renderAskAiEditorContainer = (
             ? props.extraEditorProps.continueProcessingFunctionCallsOnMount
             : false
         }
+        onRestoreProjectJson={props.onRestoreProjectJson}
         onCheckoutVersion={props.onCheckoutVersion}
         getOrLoadProjectVersion={props.getOrLoadProjectVersion}
         onSave={props.onSave}

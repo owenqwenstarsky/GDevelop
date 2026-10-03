@@ -1,4 +1,5 @@
 // @flow
+import { isCustomAiEnabled, invokeCustomAi } from '../Providers/CustomAiBridge';
 import * as React from 'react';
 import AuthenticatedUserContext from '../../Profile/AuthenticatedUserContext';
 import { makeTimestampedId } from '../../Utils/TimestampedId';
@@ -32,7 +33,9 @@ const getFileError = (file: File): AiAttachmentDraftError | null => {
  * The files attached to the message being written, for each chat ('' for a
  * new chat). They are uploaded as soon as they are added.
  */
-export const useAiAttachmentDrafts = (): {|
+export const useAiAttachmentDrafts = (
+  custom: boolean = isCustomAiEnabled()
+): {|
   draftsPerAiRequestId: { [aiRequestId: string]: Array<AiAttachmentDraft> },
   addFiles: (aiRequestId: string, files: Array<File>) => void,
   removeDraft: (aiRequestId: string, localId: string) => void,
@@ -71,7 +74,7 @@ export const useAiAttachmentDrafts = (): {|
         const error =
           validDraftsCount >= MAX_ATTACHMENTS_PER_MESSAGE
             ? 'too-many'
-            : !profile
+            : !profile && !custom
             ? 'not-authenticated'
             : getFileError(file);
         if (!error) validDraftsCount++;
@@ -91,16 +94,24 @@ export const useAiAttachmentDrafts = (): {|
         ],
       }));
 
-      if (!profile) return;
+      if (!profile && !custom) return;
       newDrafts
         .filter(draft => draft.status === 'uploading')
         .forEach(async draft => {
           try {
-            const attachmentId = await uploadAiAttachment({
-              getAuthorizationHeader,
-              userId: profile.id,
-              file: draft.file,
-            });
+            const attachmentId = custom
+              ? await invokeCustomAi('attachment', {
+                  name: draft.file.name,
+                  mimeType: draft.file.type,
+                  bytes: Array.from(
+                    new Uint8Array(await draft.file.arrayBuffer())
+                  ),
+                })
+              : await uploadAiAttachment({
+                  getAuthorizationHeader,
+                  userId: profile ? profile.id : 'local',
+                  file: draft.file,
+                });
             updateDraft(aiRequestId, draft.localId, {
               status: 'uploaded',
               attachmentId,
@@ -114,7 +125,7 @@ export const useAiAttachmentDrafts = (): {|
           }
         });
     },
-    [draftsPerAiRequestId, profile, getAuthorizationHeader, updateDraft]
+    [draftsPerAiRequestId, profile, custom, getAuthorizationHeader, updateDraft]
   );
 
   const removeDraft = React.useCallback(

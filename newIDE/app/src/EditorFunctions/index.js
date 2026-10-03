@@ -1,4 +1,5 @@
 // @flow
+import { executeIsolatedScript } from './ScriptExecution/QuickJsRunner';
 import * as React from 'react';
 import {
   getInstancesInLayoutForLayer,
@@ -218,6 +219,7 @@ export type EditorFunctionCallResult =
     |};
 
 export type ResourceSearchAndInstallOptions = {|
+  relatedAiRequestId?: ?string,
   resources: Array<{
     resourceName: string,
     resourceKind: string,
@@ -558,6 +560,9 @@ export type LaunchFunctionOptionsWithoutProject = {|
   // When true, `run_script` exposes only non-mutating functions (explorer
   // sub-agent scripts, which must stay read-only). Ignored by other functions.
   runScriptReadOnly?: boolean,
+  customProvider?: boolean,
+  customAllowedFunctionNames?: Array<string>,
+  shouldStop?: () => boolean,
   i18n: I18nType,
   relatedAiRequestId: string | null,
   getRelatedAiRequestLastMessages: () => RelatedAiRequestLastMessages,
@@ -11456,16 +11461,18 @@ const runScript: EditorFunction = {
     // functions so a script can't modify the project (defense in depth; matches
     // the backend's explorer script-function list). Signaled by the caller via
     // `runScriptReadOnly` in the collaborators bag.
-    const allowedFunctionNames = launchOptions.runScriptReadOnly
-      ? [
-          ...Object.keys(editorFunctions).filter(
-            name => !editorFunctions[name].modifiesProject
-          ),
-          ...Object.keys(editorFunctionsWithoutProject).filter(
-            name => !editorFunctionsWithoutProject[name].modifiesProject
-          ),
-        ]
-      : null;
+    const allowedFunctionNames =
+      launchOptions.customAllowedFunctionNames ||
+      (launchOptions.runScriptReadOnly
+        ? [
+            ...Object.keys(editorFunctions).filter(
+              name => !editorFunctions[name].modifiesProject
+            ),
+            ...Object.keys(editorFunctionsWithoutProject).filter(
+              name => !editorFunctionsWithoutProject[name].modifiesProject
+            ),
+          ]
+        : null);
 
     const exposedFunctions = buildExposedScriptFunctions({
       editorFunctions,
@@ -11475,7 +11482,13 @@ const runScript: EditorFunction = {
       allowedFunctionNames,
     });
 
-    const result = await executeScript({ jsCode, exposedFunctions });
+    const result = launchOptions.customProvider
+      ? await executeIsolatedScript({
+          jsCode,
+          exposedFunctions,
+          shouldStop: launchOptions.shouldStop,
+        })
+      : await executeScript({ jsCode, exposedFunctions });
     const capped = capScriptExecutionResult(result);
 
     return {

@@ -1,4 +1,6 @@
 // @flow
+import { isCustomRequestId } from './Providers/CustomAiBridge';
+import { searchLocalAssets } from './Providers/LocalTools';
 import * as React from 'react';
 import {
   type AssetSearchAndInstallOptions,
@@ -60,15 +62,18 @@ export const useSearchAndInstallAsset = ({
       exactOrPartialAssetId,
       ...assetSearchOptions
     }: EffectAssetSearchAndInstallOptions): Promise<EffectAssetSearchAndInstallResult> => {
-      if (!profile) throw new Error('User should be authenticated.');
+      if (!profile && !isCustomRequestId(assetSearchOptions.relatedAiRequestId))
+        throw new Error('User should be authenticated.');
 
       let assetShortHeader = getAssetShortHeaderFromId(exactOrPartialAssetId);
       if (!assetShortHeader) {
         const assetSearch: AssetSearch = await retryIfFailed(
           { times: 3, backoff: { initialDelay: 300, factor: 2 } },
           () =>
-            createAssetSearch(getAuthorizationHeader, {
-              userId: profile.id,
+            (isCustomRequestId(assetSearchOptions.relatedAiRequestId)
+              ? (_auth, options) => searchLocalAssets(options)
+              : createAssetSearch)(getAuthorizationHeader, {
+              userId: profile ? profile.id : 'local',
               objectType: effectType || '',
               exactOrPartialAssetId,
               searchTerms: '',
@@ -150,7 +155,11 @@ export const useSearchAndInstallAsset = ({
         exactOrPartialAssetId,
         ...assetSearchOptions
       }: AssetSearchAndInstallOptions): Promise<AssetSearchAndInstallResult> => {
-        if (!profile) throw new Error('User should be authenticated.');
+        if (
+          !profile &&
+          !isCustomRequestId(assetSearchOptions.relatedAiRequestId)
+        )
+          throw new Error('User should be authenticated.');
 
         let assetShortHeader;
         if (exactOrPartialAssetId) {
@@ -204,8 +213,10 @@ export const useSearchAndInstallAsset = ({
           const assetSearch: AssetSearch = await retryIfFailed(
             { times: 3, backoff: { initialDelay: 300, factor: 2 } },
             () =>
-              createAssetSearch(getAuthorizationHeader, {
-                userId: profile.id,
+              (isCustomRequestId(assetSearchOptions.relatedAiRequestId)
+                ? (_auth, options) => searchLocalAssets(options)
+                : createAssetSearch)(getAuthorizationHeader, {
+                userId: profile ? profile.id : 'local',
                 objectType,
                 exactOrPartialAssetId,
                 ...assetSearchOptions,

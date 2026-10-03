@@ -73,6 +73,7 @@
     "posthog-js": "1.275.2",
     "prop-types": "^15.5.10",
     "qr-creator": "^1.0.0",
+    "quickjs-emscripten": "^0.31.0",
     "react": "18.2.0",
     "react-color": "2.13.8",
     "react-dnd": "14.0.5",

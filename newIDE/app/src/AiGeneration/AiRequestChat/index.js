@@ -1,4 +1,8 @@
 // @flow
+import {
+  isCustomAiEnabled,
+  isCustomRequest,
+} from '../Providers/CustomAiBridge';
 import * as React from 'react';
 import useStableValue from '../../Utils/useStableValue';
 import { exceptionallyGuardAgainstDeadObject } from '../../Utils/IsNullPtr';
@@ -370,6 +374,7 @@ export const AiRequestChat: React.ComponentType<{
       [aiConfigurationPresetsWithAvailability, aiConfigurationPresetId]
     );
 
+    const custom = aiRequest ? isCustomRequest(aiRequest) : isCustomAiEnabled();
     const [
       userRequestTextPerAiRequestId,
       setUserRequestTextPerRequestId,
@@ -379,7 +384,7 @@ export const AiRequestChat: React.ComponentType<{
       addFiles: addAttachmentFiles,
       removeDraft: removeAttachmentDraft,
       clearDrafts: clearAttachmentDrafts,
-    } = useAiAttachmentDrafts();
+    } = useAiAttachmentDrafts(custom);
     // The new chat form uses the '' key, like its text.
     const attachmentsKey = !aiRequest || standAloneForm ? '' : aiRequestId;
     const attachmentDrafts =
@@ -547,7 +552,14 @@ export const AiRequestChat: React.ComponentType<{
       value: !!isRefreshingLimits,
     });
 
-    const priceAndRequestsText = (
+    const priceAndRequestsText = custom ? (
+      <Text size="body-small" color="secondary">
+        Custom API ·{' '}
+        {aiRequest && aiRequest.customConfiguration
+          ? aiRequest.customConfiguration.model
+          : 'local conversations'}
+      </Text>
+    ) : (
       <AiUsageIndicator
         quota={quota}
         price={price}
@@ -632,12 +644,14 @@ export const AiRequestChat: React.ComponentType<{
       [isWorking]
     );
 
-    const cannotContinue = !canPayForAiRequest({
-      quota,
-      price,
-      availableCredits,
-      automaticallyUseCreditsForAiRequests,
-    });
+    const cannotContinue =
+      !custom &&
+      !canPayForAiRequest({
+        quota,
+        price,
+        availableCredits,
+        automaticallyUseCreditsForAiRequests,
+      });
     // Derived, never stored: buying credits, subscribing, switching to GDevelop
     // credits or the allowance resetting all unblock the chat as soon as the
     // limits say so - the user doesn't have to close and reopen it.
@@ -1001,17 +1015,21 @@ export const AiRequestChat: React.ComponentType<{
                           onToggle={toggleAutoEdit}
                         />
                       )}
-                      <ReasoningLevelSelector
-                        chosenOrDefaultAiConfigurationPresetId={
-                          chosenOrDefaultAiConfigurationPresetId
-                        }
-                        setAiConfigurationPresetId={setAiConfigurationPresetId}
-                        aiConfigurationPresetsWithAvailability={
-                          aiConfigurationPresetsWithAvailability
-                        }
-                        disabled={isWorking}
-                        showSelectedLabel={!hasOpenedProject}
-                      />
+                      {!custom && (
+                        <ReasoningLevelSelector
+                          chosenOrDefaultAiConfigurationPresetId={
+                            chosenOrDefaultAiConfigurationPresetId
+                          }
+                          setAiConfigurationPresetId={
+                            setAiConfigurationPresetId
+                          }
+                          aiConfigurationPresetsWithAvailability={
+                            aiConfigurationPresetsWithAvailability
+                          }
+                          disabled={isWorking || custom}
+                          showSelectedLabel={!hasOpenedProject}
+                        />
+                      )}
                     </LineStackLayout>
                   )}
                   <Column noMargin noOverflowParent>
@@ -1094,7 +1112,7 @@ export const AiRequestChat: React.ComponentType<{
             onUserRequestTextChange={onUserRequestTextChange}
             shouldBeWorkingIfNotPaused={hasWorkToProcess || isWorking}
             isForAnotherProject={isForAnotherProject}
-            shouldDisplayFeedbackBanner={shouldDisplayFeedbackBanner}
+            shouldDisplayFeedbackBanner={!custom && shouldDisplayFeedbackBanner}
             onScrollToBottom={scrollToBottom}
             hasStartedRequestButCannotContinue={
               hasStartedRequestButCannotContinue
@@ -1230,17 +1248,19 @@ export const AiRequestChat: React.ComponentType<{
                     onToggle={toggleAutoEdit}
                   />
                 )}
-                <ReasoningLevelSelector
-                  chosenOrDefaultAiConfigurationPresetId={
-                    chosenOrDefaultAiConfigurationPresetId
-                  }
-                  setAiConfigurationPresetId={setAiConfigurationPresetId}
-                  aiConfigurationPresetsWithAvailability={
-                    aiConfigurationPresetsWithAvailability
-                  }
-                  disabled={isWorking}
-                  showSelectedLabel={!hasOpenedProject}
-                />
+                {!custom && (
+                  <ReasoningLevelSelector
+                    chosenOrDefaultAiConfigurationPresetId={
+                      chosenOrDefaultAiConfigurationPresetId
+                    }
+                    setAiConfigurationPresetId={setAiConfigurationPresetId}
+                    aiConfigurationPresetsWithAvailability={
+                      aiConfigurationPresetsWithAvailability
+                    }
+                    disabled={isWorking}
+                    showSelectedLabel={!hasOpenedProject}
+                  />
+                )}
               </LineStackLayout>
               <Column noMargin noOverflowParent>
                 {isForAnotherProjectText || errorText || priceAndRequestsText}

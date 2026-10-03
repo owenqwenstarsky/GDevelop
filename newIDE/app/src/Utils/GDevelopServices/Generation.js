@@ -142,6 +142,16 @@ export type AiRequestContextStats = {
 };
 
 export type AiRequest = {
+  provider?: 'hosted' | 'custom',
+  customConfiguration?: {
+    endpoint: string,
+    protocol: 'responses' | 'chat-completions',
+    model: string,
+    credentialReference: ?string,
+    reasoningEffort?: string,
+  },
+  revision?: number,
+  role?: 'orchestrator' | 'explorer' | 'edit' | 'tester',
   id: string,
   // The name given by the user to the chat. Without one, the first user
   // message stands for it.

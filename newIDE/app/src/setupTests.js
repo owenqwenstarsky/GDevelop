@@ -53,4 +53,5 @@ jest.setTimeout(10000);
 // Mock worker files to prevent "self is not defined" errors in tests
 // Jest will automatically use the mock implementations from the __mocks__ folders
 jest.mock('./Utils/BackgroundSerializer.worker');
+jest.mock('./EditorFunctions/ScriptExecution/QuickJs.worker', () => jest.fn());
 jest.mock('./ResourcesList/ResourcePreview/Resource3DPreview.worker');
