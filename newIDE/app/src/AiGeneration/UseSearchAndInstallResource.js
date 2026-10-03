@@ -1,4 +1,6 @@
 // @flow
+import { isCustomRequestId } from './Providers/CustomAiBridge';
+import { searchLocalResources } from './Providers/LocalTools';
 import * as React from 'react';
 import AuthenticatedUserContext from '../Profile/AuthenticatedUserContext';
 import {
@@ -35,8 +37,10 @@ export const useSearchAndInstallResource = ({
     searchAndInstallResources: React.useCallback(
       async ({
         resources,
+        relatedAiRequestId,
       }: ResourceSearchAndInstallOptions): Promise<ResourceSearchAndInstallResult> => {
-        if (!profile) throw new Error('User should be authenticated.');
+        if (!profile && !isCustomRequestId(relatedAiRequestId))
+          throw new Error('User should be authenticated.');
         if (!project) throw new Error('Project should be opened.');
 
         const { results } = await PromisePool.withConcurrency(5)
@@ -46,8 +50,10 @@ export const useSearchAndInstallResource = ({
               const resourceSearch: ResourceSearch = await retryIfFailed(
                 { times: 3, backoff: { initialDelay: 300, factor: 2 } },
                 () =>
-                  createResourceSearch(getAuthorizationHeader, {
-                    userId: profile.id,
+                  (isCustomRequestId(relatedAiRequestId)
+                    ? (_auth, options) => searchLocalResources(options)
+                    : createResourceSearch)(getAuthorizationHeader, {
+                    userId: profile ? profile.id : 'local',
                     searchTerms: resourceToSearch.resourceName,
                     resourceKind: resourceToSearch.resourceKind,
                   })

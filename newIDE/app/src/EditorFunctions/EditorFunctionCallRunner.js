@@ -1,4 +1,8 @@
 // @flow
+import { invokeCustomAi } from '../AiGeneration/Providers/CustomAiBridge';
+import { runLocalTool } from '../AiGeneration/Providers/LocalTools';
+import { serializeToJSON } from '../Utils/Serializer';
+import schemas from '../AiGeneration/Providers/ToolSchemas.json';
 import { type I18n as I18nType } from '@lingui/core';
 import { type EventsGenerationResult } from '.';
 import {
@@ -49,6 +53,10 @@ type ProcessEditorFunctionCallsOptions = {|
   // When true, a `run_script` call is exposed only non-mutating functions
   // (explorer sub-agent scripts, which must stay read-only).
   runScriptReadOnly?: boolean,
+  customProvider?: boolean,
+  +customRole?: string,
+  customAllowedFunctionNames?: Array<string>,
+  shouldStop?: () => boolean,
   relatedAiRequestId: string | null,
   getRelatedAiRequestLastMessages: () => RelatedAiRequestLastMessages,
   generateEvents: (
@@ -101,7 +109,7 @@ type ProcessEditorFunctionCallsOptions = {|
   getAssetStoreTagForNewObject: (objectType: string) => string | null,
 |};
 
-export const processEditorFunctionCalls = async ({
+const processCalls = async ({
   functionCalls,
   project,
   i18n,
@@ -109,6 +117,9 @@ export const processEditorFunctionCalls = async ({
   toolOptions,
   toolsVersion,
   runScriptReadOnly,
+  customProvider,
+  customRole,
+  shouldStop,
   generateEvents,
   onSceneEventsModifiedOutsideEditor,
   onInstancesModifiedOutsideEditor,
@@ -242,6 +253,22 @@ export const processEditorFunctionCalls = async ({
         toolOptions,
         toolsVersion,
         runScriptReadOnly,
+        customProvider,
+        customAllowedFunctionNames: customProvider
+          ? Object.keys(schemas).filter(functionName => {
+              const definition =
+                editorFunctions[functionName] ||
+                editorFunctionsWithoutProject[functionName];
+              return (
+                definition &&
+                (customRole !== 'explorer' || !definition.modifiesProject) &&
+                (customRole !== 'tester' ||
+                  !definition.modifiesProject ||
+                  functionName === 'change_gameplay_tests')
+              );
+            })
+          : undefined,
+        shouldStop,
         editorCallbacks,
         relatedAiRequestId,
         getRelatedAiRequestLastMessages,
@@ -264,7 +291,8 @@ export const processEditorFunctionCalls = async ({
         onExtensionInstalled,
         searchAndInstallAsset,
         searchAndInstallEffectAsset,
-        searchAndInstallResources,
+        searchAndInstallResources: (options: ResourceSearchAndInstallOptions) =>
+          searchAndInstallResources({ ...options, relatedAiRequestId }),
         attachmentsForResources,
         getAssetStoreTagForNewObject,
         PixiResourcesLoader,
@@ -272,7 +300,12 @@ export const processEditorFunctionCalls = async ({
 
       // Execute the function
       let result: EditorFunctionGenericOutput;
-      if (editorFunction) {
+      const localResult = customProvider
+        ? await runLocalTool(name, args)
+        : null;
+      if (localResult) {
+        result = localResult;
+      } else if (editorFunction) {
         if (project) {
           result = await editorFunction.launchFunction({
             ...argumentsWithoutProject,
@@ -344,4 +377,99 @@ export const processEditorFunctionCalls = async ({
     createdExternalLayoutNames,
     createdProject,
   };
+};
+
+// One queue for each live project, shared across all custom conversations/hooks.
+// The main-process journal also guards against duplicate execution after restart.
+const projectQueues: WeakMap<Object, Promise<any>> = new WeakMap();
+const noProjectQueueKey = {};
+export const processEditorFunctionCalls = (
+  options: ProcessEditorFunctionCallsOptions
+): Promise<any> => {
+  if (!options.customProvider) return processCalls(options);
+  const key = options.project || noProjectQueueKey;
+  const previous = projectQueues.get(key) || Promise.resolve();
+  const queued = previous
+    .catch(() => {})
+    .then(async () => {
+      const aggregate: {|
+        results: Array<EditorFunctionCallResult>,
+        createdSceneNames: Array<string>,
+        createdExternalLayoutNames: Array<string>,
+        createdProject: ?gdProject,
+      |} = {
+        results: [],
+        createdSceneNames: [],
+        createdExternalLayoutNames: [],
+        createdProject: null,
+      };
+      for (const call of options.functionCalls) {
+        if (options.shouldStop && options.shouldStop()) break;
+        const project = aggregate.createdProject || options.project;
+        const requestId = options.relatedAiRequestId;
+        const definition =
+          editorFunctions[call.name] ||
+          editorFunctionsWithoutProject[call.name];
+        const allowed =
+          schemas[call.name] &&
+          definition &&
+          (options.customRole !== 'explorer' ||
+            !definition.modifiesProject ||
+            call.name === 'run_script') &&
+          (options.customRole !== 'tester' ||
+            !definition.modifiesProject ||
+            ['run_gameplay_test', 'change_gameplay_tests'].includes(call.name));
+        if (!allowed) {
+          aggregate.results.push({
+            status: 'finished',
+            call_id: call.call_id,
+            success: false,
+            output: {
+              message: 'Tool is not allowed for this custom agent role.',
+            },
+          });
+          continue;
+        }
+        const before =
+          project && definition.modifiesProject
+            ? serializeToJSON(project)
+            : null;
+        await invokeCustomAi('begin-tool', {
+          aiRequestId: requestId,
+          callId: call.call_id,
+          projectJson: before,
+        });
+        const processed = await processCalls({
+          ...options,
+          project,
+          functionCalls: [call],
+        });
+        const resultingProject = processed.createdProject || project;
+        const after =
+          resultingProject && definition.modifiesProject
+            ? serializeToJSON(resultingProject)
+            : null;
+        const result = processed.results[0];
+        if (result && result.status === 'finished') {
+          if (before !== after) result.didModifyProject = true;
+          await invokeCustomAi('finish-tool', {
+            aiRequestId: requestId,
+            callId: call.call_id,
+            result,
+            projectJson: after,
+            gameId: resultingProject ? resultingProject.getProjectUuid() : null,
+          });
+        }
+        aggregate.results.push(...processed.results);
+        aggregate.createdSceneNames.push(...processed.createdSceneNames);
+        aggregate.createdExternalLayoutNames.push(
+          ...processed.createdExternalLayoutNames
+        );
+        if (processed.createdProject)
+          aggregate.createdProject = processed.createdProject;
+      }
+      return aggregate;
+    });
+  projectQueues.set(key, queued);
+  return queued;
 };

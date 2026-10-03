@@ -1,4 +1,7 @@
 // @flow
+import { isCustomRequestId } from './Providers/CustomAiBridge';
+import { generateLocalEvents } from './Providers/GenerateLocalEvents';
+import { type I18n as I18nType } from '@lingui/core';
 import * as React from 'react';
 import AuthenticatedUserContext from '../Profile/AuthenticatedUserContext';
 import { retryIfFailed } from '../Utils/RetryIfFailed';
@@ -37,8 +40,10 @@ type UseGenerateEventsReturnType = {
 };
 export const useGenerateEvents = ({
   project,
+  i18n,
 }: {|
   project: ?gdProject,
+  i18n: I18nType,
 |}): UseGenerateEventsReturnType => {
   const { profile, getAuthorizationHeader } = React.useContext(
     AuthenticatedUserContext
@@ -71,7 +76,8 @@ export const useGenerateEvents = ({
       estimatedComplexity: number | null,
     |}): Promise<EventsGenerationResult> => {
       if (!project) throw new Error('No project is opened.');
-      if (!profile) throw new Error('User should be authenticated.');
+      if (!profile && !isCustomRequestId(relatedAiRequestId))
+        throw new Error('User should be authenticated.');
 
       const simplifiedProjectBuilder = makeSimplifiedProjectBuilder(gd);
       const simplifiedProjectJson = JSON.stringify(
@@ -93,10 +99,35 @@ export const useGenerateEvents = ({
         })
       );
 
+      if (isCustomRequestId(relatedAiRequestId)) {
+        try {
+          return await generateLocalEvents({
+            project,
+            i18n,
+            simplifiedProjectJson,
+            projectSpecificExtensionsSummaryJson,
+            options: {
+              scope,
+              functionName,
+              sceneName,
+              eventsDescription,
+              eventBatches,
+              extensionNamesList,
+              objectsList,
+              existingEventsJson,
+              placementHint,
+              relatedAiRequestId,
+              estimatedComplexity,
+            },
+          });
+        } catch (error) {
+          return { generationCompleted: false, errorMessage: error.message };
+        }
+      }
       try {
         const preparedAiUserContent = await prepareAiUserContent({
           getAuthorizationHeader,
-          userId: profile.id,
+          userId: profile ? profile.id : 'local',
           simplifiedProjectJson,
           projectSpecificExtensionsSummaryJson,
           eventsJson: existingEventsJson,
@@ -106,7 +137,7 @@ export const useGenerateEvents = ({
           { times: 3, backoff: { initialDelay: 200, factor: 2 } },
           () =>
             createAiGeneratedEvent(getAuthorizationHeader, {
-              userId: profile.id,
+              userId: profile ? profile.id : 'local',
               gameProjectJsonUserRelativeKey:
                 preparedAiUserContent.gameProjectJsonUserRelativeKey,
               gameProjectJson: preparedAiUserContent.gameProjectJson,
@@ -151,7 +182,7 @@ export const useGenerateEvents = ({
             aiGeneratedEvent = await getAiGeneratedEvent(
               getAuthorizationHeader,
               {
-                userId: profile.id,
+                userId: profile ? profile.id : 'local',
                 aiGeneratedEventId: aiGeneratedEvent.id,
               }
             );
@@ -189,7 +220,7 @@ export const useGenerateEvents = ({
         };
       }
     },
-    [getAuthorizationHeader, project, profile]
+    [getAuthorizationHeader, project, profile, i18n]
   );
 
   return { generateEvents };

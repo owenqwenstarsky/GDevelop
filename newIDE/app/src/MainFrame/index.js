@@ -6066,6 +6066,15 @@ const MainFrame = (props: Props): React.MixedElement => {
     setEditorTabs: setEditorTabs,
     saveProject: saveProject,
     saveProjectAsWithStorageProvider: saveProjectAsWithStorageProvider,
+    onRestoreProjectJson: async projectJson => {
+      const serialized = gd.Serializer.fromJSON(projectJson);
+      try {
+        await loadFromSerializedProject(serialized, currentFileMetadata);
+      } finally {
+        serialized.delete();
+      }
+      triggerUnsavedChanges();
+    },
     onCheckoutVersion: onCheckoutVersion,
     getOrLoadProjectVersion: getOrLoadProjectVersion,
     openShareDialog: tab => {

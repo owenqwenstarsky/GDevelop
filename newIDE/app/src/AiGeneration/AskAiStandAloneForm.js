@@ -1,11 +1,14 @@
 // @flow
+import { createAiRequest, addMessageToAiRequest } from './Providers/AiProvider';
+import {
+  isCustomAiEnabled,
+  isCustomRequestId,
+} from './Providers/CustomAiBridge';
 import * as React from 'react';
 import { type I18n as I18nType } from '@lingui/core';
 import { AiRequestChat, type AiRequestChatInterface } from './AiRequestChat';
 import { canPayForAiRequest } from './AiRequestChat/Utils';
 import {
-  addMessageToAiRequest,
-  createAiRequest,
   type AiRequest,
   type AiRequestMessageAssistantFunctionCall,
 } from '../Utils/GDevelopServices/Generation';
@@ -34,7 +37,7 @@ import { type ResourceManagementProps } from '../ResourcesList/ResourceSource';
 import { sendAiRequestStarted } from '../Utils/Analytics/EventSender';
 import { listAllExamples } from '../Utils/GDevelopServices/Example';
 import UrlStorageProvider from '../ProjectsStorage/UrlStorageProvider';
-import { prepareAiUserContent } from './PrepareAiUserContent';
+import { prepareProviderUserContent } from './Providers/PrepareUserContent';
 import { AiRequestContext } from './AiRequestContext';
 import { getAiConfigurationPresetsWithAvailability } from './AiConfiguration';
 import { type CreateProjectResult } from '../Utils/UseCreateProject';
@@ -244,7 +247,7 @@ export const AskAiStandAloneForm = ({
   // we display the proper quota and credits information for the user.
   React.useEffect(
     () => {
-      if (profile) refreshLimits();
+      if (profile && !isCustomAiEnabled()) refreshLimits();
     },
     // Only on mount, we'll refresh again when sending an AI request.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -260,7 +263,7 @@ export const AskAiStandAloneForm = ({
         if (!newAiRequestOptions) return;
         console.info('Starting a new AI request...');
 
-        if (!profile) {
+        if (!profile && !isCustomAiEnabled()) {
           onOpenCreateAccountDialog();
           startNewAiRequest(null);
           return;
@@ -288,12 +291,18 @@ export const AskAiStandAloneForm = ({
         // Ensure the user has enough credits to pay for the request, or ask them
         // to buy some more.
         let payWithCredits = false;
-        if (quota && quota.limitReached && aiRequestPriceInCredits) {
+        if (
+          !isCustomAiEnabled() &&
+          quota &&
+          quota.limitReached &&
+          aiRequestPriceInCredits
+        ) {
           payWithCredits = true;
         }
         // The same rule as the one enabling the send button, so the button
         // can't offer to send a request this would silently drop.
         if (
+          !isCustomAiEnabled() &&
           !canPayForAiRequest({
             quota,
             price: aiRequestPrice,
@@ -313,18 +322,21 @@ export const AskAiStandAloneForm = ({
           setSendingAiRequest(null, true);
           setIsSendingUserMessage(true);
 
-          const preparedAiUserContent = await prepareAiUserContent({
-            getAuthorizationHeader,
-            userId: profile.id,
-            simplifiedProjectJson: null,
-            projectSpecificExtensionsSummaryJson: null,
-            eventsJson: null,
-          });
+          const preparedAiUserContent = await prepareProviderUserContent(
+            isCustomAiEnabled(),
+            {
+              getAuthorizationHeader,
+              userId: profile ? profile.id : 'local',
+              simplifiedProjectJson: null,
+              projectSpecificExtensionsSummaryJson: null,
+              eventsJson: null,
+            }
+          );
 
           const aiRequest = await createAiRequest(getAuthorizationHeader, {
             userRequest: userRequest,
             attachmentIds,
-            userId: profile.id,
+            userId: profile ? profile.id : 'local',
             gameProjectJsonUserRelativeKey:
               preparedAiUserContent.gameProjectJsonUserRelativeKey,
             gameProjectJson: preparedAiUserContent.gameProjectJson,
@@ -395,7 +407,7 @@ export const AskAiStandAloneForm = ({
         // Refresh the user limits, to ensure quota and credits information
         // is up-to-date after an AI request.
         await delay(500);
-        await refreshLimits({ withRetry: true });
+        if (!isCustomAiEnabled()) await refreshLimits({ withRetry: true });
       })();
     },
     [
@@ -447,7 +459,7 @@ export const AskAiStandAloneForm = ({
       createdProject?: ?gdProject,
       editorFunctionCallResults: Array<EditorFunctionCallResult>,
     |}) => {
-      if (!profile) return;
+      if (!profile && !isCustomRequestId(aiRequestId)) return;
 
       const aiRequestForSend = aiRequests[aiRequestId];
       if (!aiRequestForSend) return;
@@ -498,17 +510,20 @@ export const AskAiStandAloneForm = ({
             )
           : null;
 
-        const preparedAiUserContent = await prepareAiUserContent({
-          getAuthorizationHeader,
-          userId: profile.id,
-          simplifiedProjectJson,
-          projectSpecificExtensionsSummaryJson,
-          eventsJson: null,
-        });
+        const preparedAiUserContent = await prepareProviderUserContent(
+          isCustomRequestId(aiRequestId),
+          {
+            getAuthorizationHeader,
+            userId: profile ? profile.id : 'local',
+            simplifiedProjectJson,
+            projectSpecificExtensionsSummaryJson,
+            eventsJson: null,
+          }
+        );
 
         const aiRequest: AiRequest = await retryIfFailed({ times: 2 }, () =>
           addMessageToAiRequest(getAuthorizationHeader, {
-            userId: profile.id,
+            userId: profile ? profile.id : 'local',
             aiRequestId,
             functionCallOutputs,
             gameProjectJsonUserRelativeKey:
@@ -552,7 +567,8 @@ export const AskAiStandAloneForm = ({
       // Refresh the user limits, to ensure quota and credits information
       // is up-to-date after an AI request.
       await delay(500);
-      await refreshLimits({ withRetry: true });
+      if (!isCustomRequestId(aiRequestId))
+        await refreshLimits({ withRetry: true });
     },
     [
       profile,

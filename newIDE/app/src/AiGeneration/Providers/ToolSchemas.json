@@ -1,0 +1,2454 @@
+{
+  "run_script": {
+    "description": "run script. Inspect existing data first. Arguments follow the editor API; failures include corrective hints. ",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "js_code": {
+          "type": "string",
+          "description": "Async JavaScript body inside an isolated QuickJS worker. Only advertised scriptable editor functions and console are available. await every call sequentially; no Promise.all. Each function accepts its tool argument object."
+        }
+      },
+      "required": [],
+      "additionalProperties": true
+    }
+  },
+  "create_or_replace_object": {
+    "description": "create or replace object. Inspect existing data first. Arguments follow the editor API; failures include corrective hints. ",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "object_name": {
+          "type": "string"
+        },
+        "replace_existing_object": {
+          "type": "boolean"
+        },
+        "duplicated_object_name": {
+          "type": "string"
+        },
+        "object_type": {
+          "type": "string"
+        },
+        "target_object_scope": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "search_terms": {
+          "type": "string"
+        },
+        "asset_id": {
+          "type": "string"
+        },
+        "two_dimensional_view_kind": {
+          "type": "string"
+        },
+        "duplicated_object_scope": {},
+        "duplicated_object_scene": {},
+        "scope": {
+          "type": "object",
+          "description": "Scope. Scene: {type:\"scene\",scene_name:\"Level\"}. Project: {type:\"project\"}. Extension function: {type:\"extension\",extension_name:\"MyExtension\"} plus top-level function_name.",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "project",
+                "scene",
+                "external_layout",
+                "external_events",
+                "extension",
+                "custom_behavior",
+                "custom_object",
+                "custom_object_variant"
+              ]
+            },
+            "scene_name": {
+              "type": "string"
+            },
+            "external_layout_name": {
+              "type": "string"
+            },
+            "external_events_name": {
+              "type": "string"
+            },
+            "extension_name": {
+              "type": "string"
+            },
+            "custom_behavior_name": {
+              "type": "string"
+            },
+            "custom_object_name": {
+              "type": "string"
+            },
+            "variant_name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "object_name"
+      ],
+      "additionalProperties": true
+    }
+  },
+  "inspect_object_properties_effects": {
+    "description": "inspect object properties effects. Inspect existing data first. Arguments follow the editor API; failures include corrective hints. ",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "object_name": {
+          "type": "string"
+        },
+        "include_raw_json": {
+          "type": "boolean"
+        },
+        "scope": {
+          "type": "object",
+          "description": "Scope. Scene: {type:\"scene\",scene_name:\"Level\"}. Project: {type:\"project\"}. Extension function: {type:\"extension\",extension_name:\"MyExtension\"} plus top-level function_name.",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "project",
+                "scene",
+                "external_layout",
+                "external_events",
+                "extension",
+                "custom_behavior",
+                "custom_object",
+                "custom_object_variant"
+              ]
+            },
+            "scene_name": {
+              "type": "string"
+            },
+            "external_layout_name": {
+              "type": "string"
+            },
+            "external_events_name": {
+              "type": "string"
+            },
+            "extension_name": {
+              "type": "string"
+            },
+            "custom_behavior_name": {
+              "type": "string"
+            },
+            "custom_object_name": {
+              "type": "string"
+            },
+            "variant_name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "object_name"
+      ],
+      "additionalProperties": true
+    }
+  },
+  "change_object_properties_effects": {
+    "description": "change object properties effects. Inspect existing data first. Arguments follow the editor API; failures include corrective hints. ",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "object_name": {
+          "type": "string"
+        },
+        "delete_this_object": {
+          "type": "boolean"
+        },
+        "raw_json": {},
+        "renamed_animations": {
+          "type": "array",
+          "items": {}
+        },
+        "renamed_points": {
+          "type": "array",
+          "items": {}
+        },
+        "changed_properties": {
+          "type": "array",
+          "items": {}
+        },
+        "changed_effects": {
+          "type": "array",
+          "items": {}
+        },
+        "scope": {
+          "type": "object",
+          "description": "Scope. Scene: {type:\"scene\",scene_name:\"Level\"}. Project: {type:\"project\"}. Extension function: {type:\"extension\",extension_name:\"MyExtension\"} plus top-level function_name.",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "project",
+                "scene",
+                "external_layout",
+                "external_events",
+                "extension",
+                "custom_behavior",
+                "custom_object",
+                "custom_object_variant"
+              ]
+            },
+            "scene_name": {
+              "type": "string"
+            },
+            "external_layout_name": {
+              "type": "string"
+            },
+            "external_events_name": {
+              "type": "string"
+            },
+            "extension_name": {
+              "type": "string"
+            },
+            "custom_behavior_name": {
+              "type": "string"
+            },
+            "custom_object_name": {
+              "type": "string"
+            },
+            "variant_name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "object_name"
+      ],
+      "additionalProperties": true
+    }
+  },
+  "add_behavior": {
+    "description": "add behavior. Inspect existing data first. Arguments follow the editor API; failures include corrective hints. ",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "object_name": {
+          "type": "string"
+        },
+        "behavior_type": {
+          "type": "string"
+        },
+        "behavior_name": {
+          "type": "string"
+        },
+        "scope": {
+          "type": "object",
+          "description": "Scope. Scene: {type:\"scene\",scene_name:\"Level\"}. Project: {type:\"project\"}. Extension function: {type:\"extension\",extension_name:\"MyExtension\"} plus top-level function_name.",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "project",
+                "scene",
+                "external_layout",
+                "external_events",
+                "extension",
+                "custom_behavior",
+                "custom_object",
+                "custom_object_variant"
+              ]
+            },
+            "scene_name": {
+              "type": "string"
+            },
+            "external_layout_name": {
+              "type": "string"
+            },
+            "external_events_name": {
+              "type": "string"
+            },
+            "extension_name": {
+              "type": "string"
+            },
+            "custom_behavior_name": {
+              "type": "string"
+            },
+            "custom_object_name": {
+              "type": "string"
+            },
+            "variant_name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "object_name",
+        "behavior_type"
+      ],
+      "additionalProperties": true
+    }
+  },
+  "inspect_behavior_properties": {
+    "description": "inspect behavior properties. Inspect existing data first. Arguments follow the editor API; failures include corrective hints. ",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "object_name": {
+          "type": "string"
+        },
+        "behavior_name": {
+          "type": "string"
+        },
+        "scope": {
+          "type": "object",
+          "description": "Scope. Scene: {type:\"scene\",scene_name:\"Level\"}. Project: {type:\"project\"}. Extension function: {type:\"extension\",extension_name:\"MyExtension\"} plus top-level function_name.",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "project",
+                "scene",
+                "external_layout",
+                "external_events",
+                "extension",
+                "custom_behavior",
+                "custom_object",
+                "custom_object_variant"
+              ]
+            },
+            "scene_name": {
+              "type": "string"
+            },
+            "external_layout_name": {
+              "type": "string"
+            },
+            "external_events_name": {
+              "type": "string"
+            },
+            "extension_name": {
+              "type": "string"
+            },
+            "custom_behavior_name": {
+              "type": "string"
+            },
+            "custom_object_name": {
+              "type": "string"
+            },
+            "variant_name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "object_name",
+        "behavior_name"
+      ],
+      "additionalProperties": true
+    }
+  },
+  "change_behavior_property": {
+    "description": "change behavior property. Inspect existing data first. Arguments follow the editor API; failures include corrective hints. ",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "object_name": {
+          "type": "string"
+        },
+        "behavior_name": {
+          "type": "string"
+        },
+        "delete_this_behavior": {
+          "type": "boolean"
+        },
+        "changed_properties": {
+          "type": "array",
+          "items": {}
+        },
+        "scope": {
+          "type": "object",
+          "description": "Scope. Scene: {type:\"scene\",scene_name:\"Level\"}. Project: {type:\"project\"}. Extension function: {type:\"extension\",extension_name:\"MyExtension\"} plus top-level function_name.",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "project",
+                "scene",
+                "external_layout",
+                "external_events",
+                "extension",
+                "custom_behavior",
+                "custom_object",
+                "custom_object_variant"
+              ]
+            },
+            "scene_name": {
+              "type": "string"
+            },
+            "external_layout_name": {
+              "type": "string"
+            },
+            "external_events_name": {
+              "type": "string"
+            },
+            "extension_name": {
+              "type": "string"
+            },
+            "custom_behavior_name": {
+              "type": "string"
+            },
+            "custom_object_name": {
+              "type": "string"
+            },
+            "variant_name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "object_name",
+        "behavior_name"
+      ],
+      "additionalProperties": true
+    }
+  },
+  "describe_instances": {
+    "description": "describe instances. Inspect existing data first. Arguments follow the editor API; failures include corrective hints. ",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "filter_by_object_name": {
+          "type": "string"
+        },
+        "include_raw_json": {
+          "type": "boolean"
+        },
+        "scope": {
+          "type": "object",
+          "description": "Scope. Scene: {type:\"scene\",scene_name:\"Level\"}. Project: {type:\"project\"}. Extension function: {type:\"extension\",extension_name:\"MyExtension\"} plus top-level function_name.",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "project",
+                "scene",
+                "external_layout",
+                "external_events",
+                "extension",
+                "custom_behavior",
+                "custom_object",
+                "custom_object_variant"
+              ]
+            },
+            "scene_name": {
+              "type": "string"
+            },
+            "external_layout_name": {
+              "type": "string"
+            },
+            "external_events_name": {
+              "type": "string"
+            },
+            "extension_name": {
+              "type": "string"
+            },
+            "custom_behavior_name": {
+              "type": "string"
+            },
+            "custom_object_name": {
+              "type": "string"
+            },
+            "variant_name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [],
+      "additionalProperties": true
+    }
+  },
+  "change_instances_raw_json": {
+    "description": "change instances raw json. Inspect existing data first. Arguments follow the editor API; failures include corrective hints. ",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "changes": {
+          "type": "array",
+          "items": {}
+        },
+        "scope": {
+          "type": "object",
+          "description": "Scope. Scene: {type:\"scene\",scene_name:\"Level\"}. Project: {type:\"project\"}. Extension function: {type:\"extension\",extension_name:\"MyExtension\"} plus top-level function_name.",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "project",
+                "scene",
+                "external_layout",
+                "external_events",
+                "extension",
+                "custom_behavior",
+                "custom_object",
+                "custom_object_variant"
+              ]
+            },
+            "scene_name": {
+              "type": "string"
+            },
+            "external_layout_name": {
+              "type": "string"
+            },
+            "external_events_name": {
+              "type": "string"
+            },
+            "extension_name": {
+              "type": "string"
+            },
+            "custom_behavior_name": {
+              "type": "string"
+            },
+            "custom_object_name": {
+              "type": "string"
+            },
+            "variant_name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [],
+      "additionalProperties": true
+    }
+  },
+  "put_2d_instances": {
+    "description": "put 2d instances. Inspect existing data first. Arguments follow the editor API; failures include corrective hints. ",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "object_name": {
+          "type": "string"
+        },
+        "layer_name": {
+          "type": "string"
+        },
+        "brush_kind": {
+          "type": "string"
+        },
+        "brush_position": {
+          "type": "string"
+        },
+        "existing_instance_ids": {
+          "type": "string"
+        },
+        "new_instances_count": {
+          "type": "number"
+        },
+        "brush_size": {
+          "type": "number"
+        },
+        "brush_end_position": {
+          "type": "string"
+        },
+        "instances_z_order": {
+          "type": "number"
+        },
+        "instances_size": {
+          "type": "string"
+        },
+        "row_count": {
+          "type": "number"
+        },
+        "column_count": {
+          "type": "number"
+        },
+        "instances_rotation": {
+          "type": "number"
+        },
+        "instances_opacity": {
+          "type": "number"
+        },
+        "instances_hidden": {
+          "type": "boolean"
+        },
+        "scope": {
+          "type": "object",
+          "description": "Scope. Scene: {type:\"scene\",scene_name:\"Level\"}. Project: {type:\"project\"}. Extension function: {type:\"extension\",extension_name:\"MyExtension\"} plus top-level function_name.",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "project",
+                "scene",
+                "external_layout",
+                "external_events",
+                "extension",
+                "custom_behavior",
+                "custom_object",
+                "custom_object_variant"
+              ]
+            },
+            "scene_name": {
+              "type": "string"
+            },
+            "external_layout_name": {
+              "type": "string"
+            },
+            "external_events_name": {
+              "type": "string"
+            },
+            "extension_name": {
+              "type": "string"
+            },
+            "custom_behavior_name": {
+              "type": "string"
+            },
+            "custom_object_name": {
+              "type": "string"
+            },
+            "variant_name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "layer_name",
+        "brush_kind"
+      ],
+      "additionalProperties": true
+    }
+  },
+  "put_3d_instances": {
+    "description": "put 3d instances. Inspect existing data first. Arguments follow the editor API; failures include corrective hints. ",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "object_name": {
+          "type": "string"
+        },
+        "layer_name": {
+          "type": "string"
+        },
+        "brush_kind": {
+          "type": "string"
+        },
+        "brush_position": {
+          "type": "string"
+        },
+        "existing_instance_ids": {
+          "type": "string"
+        },
+        "new_instances_count": {
+          "type": "number"
+        },
+        "brush_size": {
+          "type": "number"
+        },
+        "brush_end_position": {
+          "type": "string"
+        },
+        "instances_size": {
+          "type": "string"
+        },
+        "instances_rotation": {
+          "type": "string"
+        },
+        "instances_hidden": {
+          "type": "boolean"
+        },
+        "scope": {
+          "type": "object",
+          "description": "Scope. Scene: {type:\"scene\",scene_name:\"Level\"}. Project: {type:\"project\"}. Extension function: {type:\"extension\",extension_name:\"MyExtension\"} plus top-level function_name.",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "project",
+                "scene",
+                "external_layout",
+                "external_events",
+                "extension",
+                "custom_behavior",
+                "custom_object",
+                "custom_object_variant"
+              ]
+            },
+            "scene_name": {
+              "type": "string"
+            },
+            "external_layout_name": {
+              "type": "string"
+            },
+            "external_events_name": {
+              "type": "string"
+            },
+            "extension_name": {
+              "type": "string"
+            },
+            "custom_behavior_name": {
+              "type": "string"
+            },
+            "custom_object_name": {
+              "type": "string"
+            },
+            "variant_name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "layer_name",
+        "brush_kind"
+      ],
+      "additionalProperties": true
+    }
+  },
+  "read_scene_events": {
+    "description": "read scene events. Inspect existing data first. Arguments follow the editor API; failures include corrective hints. ",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "scope": {
+          "type": "object",
+          "description": "Scope. Scene: {type:\"scene\",scene_name:\"Level\"}. Project: {type:\"project\"}. Extension function: {type:\"extension\",extension_name:\"MyExtension\"} plus top-level function_name.",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "project",
+                "scene",
+                "external_layout",
+                "external_events",
+                "extension",
+                "custom_behavior",
+                "custom_object",
+                "custom_object_variant"
+              ]
+            },
+            "scene_name": {
+              "type": "string"
+            },
+            "external_layout_name": {
+              "type": "string"
+            },
+            "external_events_name": {
+              "type": "string"
+            },
+            "extension_name": {
+              "type": "string"
+            },
+            "custom_behavior_name": {
+              "type": "string"
+            },
+            "custom_object_name": {
+              "type": "string"
+            },
+            "variant_name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [],
+      "additionalProperties": true
+    }
+  },
+  "read_events_source": {
+    "description": "read events source. Inspect existing data first. Arguments follow the editor API; failures include corrective hints. ",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "event_ids": {
+          "type": "array",
+          "items": {}
+        },
+        "search": {
+          "type": "string"
+        },
+        "object_names": {
+          "type": "array",
+          "items": {}
+        },
+        "function_name": {
+          "type": "string"
+        },
+        "sub_events_depth": {
+          "type": "number"
+        },
+        "max_chars": {
+          "type": "number"
+        },
+        "scope": {
+          "type": "object",
+          "description": "Scope. Scene: {type:\"scene\",scene_name:\"Level\"}. Project: {type:\"project\"}. Extension function: {type:\"extension\",extension_name:\"MyExtension\"} plus top-level function_name.",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "project",
+                "scene",
+                "external_layout",
+                "external_events",
+                "extension",
+                "custom_behavior",
+                "custom_object",
+                "custom_object_variant"
+              ]
+            },
+            "scene_name": {
+              "type": "string"
+            },
+            "external_layout_name": {
+              "type": "string"
+            },
+            "external_events_name": {
+              "type": "string"
+            },
+            "extension_name": {
+              "type": "string"
+            },
+            "custom_behavior_name": {
+              "type": "string"
+            },
+            "custom_object_name": {
+              "type": "string"
+            },
+            "variant_name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [],
+      "additionalProperties": true
+    }
+  },
+  "create_scene": {
+    "description": "create scene. Inspect existing data first. Arguments follow the editor API; failures include corrective hints. ",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "scene_name": {
+          "type": "string"
+        },
+        "as_external_layout_of_scene": {
+          "type": "string"
+        },
+        "include_ui_layer": {
+          "type": "boolean"
+        },
+        "background_color": {
+          "type": "string"
+        },
+        "is_first_scene": {
+          "type": "boolean"
+        },
+        "scope": {
+          "type": "object",
+          "description": "Scope. Scene: {type:\"scene\",scene_name:\"Level\"}. Project: {type:\"project\"}. Extension function: {type:\"extension\",extension_name:\"MyExtension\"} plus top-level function_name.",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "project",
+                "scene",
+                "external_layout",
+                "external_events",
+                "extension",
+                "custom_behavior",
+                "custom_object",
+                "custom_object_variant"
+              ]
+            },
+            "scene_name": {
+              "type": "string"
+            },
+            "external_layout_name": {
+              "type": "string"
+            },
+            "external_events_name": {
+              "type": "string"
+            },
+            "extension_name": {
+              "type": "string"
+            },
+            "custom_behavior_name": {
+              "type": "string"
+            },
+            "custom_object_name": {
+              "type": "string"
+            },
+            "variant_name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "scene_name"
+      ],
+      "additionalProperties": true
+    }
+  },
+  "inspect_scene_properties_layers_effects": {
+    "description": "inspect scene properties layers effects. Inspect existing data first. Arguments follow the editor API; failures include corrective hints. ",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "scope": {
+          "type": "object",
+          "description": "Scope. Scene: {type:\"scene\",scene_name:\"Level\"}. Project: {type:\"project\"}. Extension function: {type:\"extension\",extension_name:\"MyExtension\"} plus top-level function_name.",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "project",
+                "scene",
+                "external_layout",
+                "external_events",
+                "extension",
+                "custom_behavior",
+                "custom_object",
+                "custom_object_variant"
+              ]
+            },
+            "scene_name": {
+              "type": "string"
+            },
+            "external_layout_name": {
+              "type": "string"
+            },
+            "external_events_name": {
+              "type": "string"
+            },
+            "extension_name": {
+              "type": "string"
+            },
+            "custom_behavior_name": {
+              "type": "string"
+            },
+            "custom_object_name": {
+              "type": "string"
+            },
+            "variant_name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [],
+      "additionalProperties": true
+    }
+  },
+  "change_scene_properties_layers_effects_groups": {
+    "description": "change scene properties layers effects groups. Inspect existing data first. Arguments follow the editor API; failures include corrective hints. ",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "delete_this_scene": {
+          "type": "boolean"
+        },
+        "move_instances": {
+          "type": "object"
+        },
+        "changed_properties": {
+          "type": "array",
+          "items": {}
+        },
+        "changed_layers": {
+          "type": "array",
+          "items": {}
+        },
+        "changed_layer_effects": {
+          "type": "array",
+          "items": {}
+        },
+        "changed_groups": {
+          "type": "array",
+          "items": {}
+        },
+        "scope": {
+          "type": "object",
+          "description": "Scope. Scene: {type:\"scene\",scene_name:\"Level\"}. Project: {type:\"project\"}. Extension function: {type:\"extension\",extension_name:\"MyExtension\"} plus top-level function_name.",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "project",
+                "scene",
+                "external_layout",
+                "external_events",
+                "extension",
+                "custom_behavior",
+                "custom_object",
+                "custom_object_variant"
+              ]
+            },
+            "scene_name": {
+              "type": "string"
+            },
+            "external_layout_name": {
+              "type": "string"
+            },
+            "external_events_name": {
+              "type": "string"
+            },
+            "extension_name": {
+              "type": "string"
+            },
+            "custom_behavior_name": {
+              "type": "string"
+            },
+            "custom_object_name": {
+              "type": "string"
+            },
+            "variant_name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [],
+      "additionalProperties": true
+    }
+  },
+  "inspect_project_properties_resources": {
+    "description": "inspect project properties resources. Inspect existing data first. Arguments follow the editor API; failures include corrective hints. ",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "filter_by_resource_name": {
+          "type": "string"
+        },
+        "list_all_resources": {
+          "type": "boolean"
+        },
+        "scope": {
+          "type": "object",
+          "description": "Scope. Scene: {type:\"scene\",scene_name:\"Level\"}. Project: {type:\"project\"}. Extension function: {type:\"extension\",extension_name:\"MyExtension\"} plus top-level function_name.",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "project",
+                "scene",
+                "external_layout",
+                "external_events",
+                "extension",
+                "custom_behavior",
+                "custom_object",
+                "custom_object_variant"
+              ]
+            },
+            "scene_name": {
+              "type": "string"
+            },
+            "external_layout_name": {
+              "type": "string"
+            },
+            "external_events_name": {
+              "type": "string"
+            },
+            "extension_name": {
+              "type": "string"
+            },
+            "custom_behavior_name": {
+              "type": "string"
+            },
+            "custom_object_name": {
+              "type": "string"
+            },
+            "variant_name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [],
+      "additionalProperties": true
+    }
+  },
+  "change_project_properties_resources": {
+    "description": "change project properties resources. Inspect existing data first. Arguments follow the editor API; failures include corrective hints. ",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "changed_properties": {
+          "type": "array",
+          "items": {}
+        },
+        "changed_resources": {
+          "type": "array",
+          "items": {}
+        },
+        "added_resources": {
+          "type": "array",
+          "items": {}
+        },
+        "scope": {
+          "type": "object",
+          "description": "Scope. Scene: {type:\"scene\",scene_name:\"Level\"}. Project: {type:\"project\"}. Extension function: {type:\"extension\",extension_name:\"MyExtension\"} plus top-level function_name.",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "project",
+                "scene",
+                "external_layout",
+                "external_events",
+                "extension",
+                "custom_behavior",
+                "custom_object",
+                "custom_object_variant"
+              ]
+            },
+            "scene_name": {
+              "type": "string"
+            },
+            "external_layout_name": {
+              "type": "string"
+            },
+            "external_events_name": {
+              "type": "string"
+            },
+            "extension_name": {
+              "type": "string"
+            },
+            "custom_behavior_name": {
+              "type": "string"
+            },
+            "custom_object_name": {
+              "type": "string"
+            },
+            "variant_name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [],
+      "additionalProperties": true
+    }
+  },
+  "add_or_edit_variable": {
+    "description": "add or edit variable. Inspect existing data first. Arguments follow the editor API; failures include corrective hints. ",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "variable_scope": {
+          "type": "string"
+        },
+        "object_name": {
+          "type": "string"
+        },
+        "instance_id": {
+          "type": "string"
+        },
+        "scope": {
+          "type": "object",
+          "description": "Scope. Scene: {type:\"scene\",scene_name:\"Level\"}. Project: {type:\"project\"}. Extension function: {type:\"extension\",extension_name:\"MyExtension\"} plus top-level function_name.",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "project",
+                "scene",
+                "external_layout",
+                "external_events",
+                "extension",
+                "custom_behavior",
+                "custom_object",
+                "custom_object_variant"
+              ]
+            },
+            "scene_name": {
+              "type": "string"
+            },
+            "external_layout_name": {
+              "type": "string"
+            },
+            "external_events_name": {
+              "type": "string"
+            },
+            "extension_name": {
+              "type": "string"
+            },
+            "custom_behavior_name": {
+              "type": "string"
+            },
+            "custom_object_name": {
+              "type": "string"
+            },
+            "variant_name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "variable_scope"
+      ],
+      "additionalProperties": true
+    }
+  },
+  "inspect_variables": {
+    "description": "inspect variables. Inspect existing data first. Arguments follow the editor API; failures include corrective hints. ",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "variable_scope": {
+          "type": "string"
+        },
+        "object_name": {
+          "type": "string"
+        },
+        "variable_names_or_paths": {
+          "type": "array",
+          "items": {}
+        },
+        "instance_id": {
+          "type": "string"
+        },
+        "scope": {
+          "type": "object",
+          "description": "Scope. Scene: {type:\"scene\",scene_name:\"Level\"}. Project: {type:\"project\"}. Extension function: {type:\"extension\",extension_name:\"MyExtension\"} plus top-level function_name.",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "project",
+                "scene",
+                "external_layout",
+                "external_events",
+                "extension",
+                "custom_behavior",
+                "custom_object",
+                "custom_object_variant"
+              ]
+            },
+            "scene_name": {
+              "type": "string"
+            },
+            "external_layout_name": {
+              "type": "string"
+            },
+            "external_events_name": {
+              "type": "string"
+            },
+            "extension_name": {
+              "type": "string"
+            },
+            "custom_behavior_name": {
+              "type": "string"
+            },
+            "custom_object_name": {
+              "type": "string"
+            },
+            "variant_name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "variable_scope"
+      ],
+      "additionalProperties": true
+    }
+  },
+  "inspect_extension": {
+    "description": "inspect extension. Inspect existing data first. Arguments follow the editor API; failures include corrective hints. ",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "extension_name": {
+          "type": "string"
+        },
+        "custom_object_name": {
+          "type": "string"
+        },
+        "custom_behavior_name": {
+          "type": "string"
+        },
+        "function_name": {
+          "type": "string"
+        },
+        "variant_name": {
+          "type": "string"
+        },
+        "scope": {
+          "type": "object",
+          "description": "Scope. Scene: {type:\"scene\",scene_name:\"Level\"}. Project: {type:\"project\"}. Extension function: {type:\"extension\",extension_name:\"MyExtension\"} plus top-level function_name.",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "project",
+                "scene",
+                "external_layout",
+                "external_events",
+                "extension",
+                "custom_behavior",
+                "custom_object",
+                "custom_object_variant"
+              ]
+            },
+            "scene_name": {
+              "type": "string"
+            },
+            "external_layout_name": {
+              "type": "string"
+            },
+            "external_events_name": {
+              "type": "string"
+            },
+            "extension_name": {
+              "type": "string"
+            },
+            "custom_behavior_name": {
+              "type": "string"
+            },
+            "custom_object_name": {
+              "type": "string"
+            },
+            "variant_name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "extension_name"
+      ],
+      "additionalProperties": true
+    }
+  },
+  "create_extension": {
+    "description": "create extension. Inspect existing data first. Arguments follow the editor API; failures include corrective hints. ",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "extension_name": {
+          "type": "string"
+        },
+        "duplicated_extension_name": {
+          "type": "string"
+        },
+        "scope": {
+          "type": "object",
+          "description": "Scope. Scene: {type:\"scene\",scene_name:\"Level\"}. Project: {type:\"project\"}. Extension function: {type:\"extension\",extension_name:\"MyExtension\"} plus top-level function_name.",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "project",
+                "scene",
+                "external_layout",
+                "external_events",
+                "extension",
+                "custom_behavior",
+                "custom_object",
+                "custom_object_variant"
+              ]
+            },
+            "scene_name": {
+              "type": "string"
+            },
+            "external_layout_name": {
+              "type": "string"
+            },
+            "external_events_name": {
+              "type": "string"
+            },
+            "extension_name": {
+              "type": "string"
+            },
+            "custom_behavior_name": {
+              "type": "string"
+            },
+            "custom_object_name": {
+              "type": "string"
+            },
+            "variant_name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "extension_name"
+      ],
+      "additionalProperties": true
+    }
+  },
+  "change_extension_properties": {
+    "description": "change extension properties. Inspect existing data first. Arguments follow the editor API; failures include corrective hints. ",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "extension_name": {
+          "type": "string"
+        },
+        "delete_this_extension": {
+          "type": "boolean"
+        },
+        "delete_even_if_used": {
+          "type": "boolean"
+        },
+        "changed_properties": {
+          "type": "array",
+          "items": {}
+        },
+        "changed_dependencies": {
+          "type": "array",
+          "items": {}
+        },
+        "scope": {
+          "type": "object",
+          "description": "Scope. Scene: {type:\"scene\",scene_name:\"Level\"}. Project: {type:\"project\"}. Extension function: {type:\"extension\",extension_name:\"MyExtension\"} plus top-level function_name.",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "project",
+                "scene",
+                "external_layout",
+                "external_events",
+                "extension",
+                "custom_behavior",
+                "custom_object",
+                "custom_object_variant"
+              ]
+            },
+            "scene_name": {
+              "type": "string"
+            },
+            "external_layout_name": {
+              "type": "string"
+            },
+            "external_events_name": {
+              "type": "string"
+            },
+            "extension_name": {
+              "type": "string"
+            },
+            "custom_behavior_name": {
+              "type": "string"
+            },
+            "custom_object_name": {
+              "type": "string"
+            },
+            "variant_name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "extension_name"
+      ],
+      "additionalProperties": true
+    }
+  },
+  "create_custom_object": {
+    "description": "create custom object. Inspect existing data first. Arguments follow the editor API; failures include corrective hints. ",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "extension_name": {
+          "type": "string"
+        },
+        "custom_object_name": {
+          "type": "string"
+        },
+        "duplicated_custom_object_name": {
+          "type": "string"
+        },
+        "duplicated_from_extension_name": {
+          "type": "string"
+        },
+        "area": {
+          "type": "object"
+        },
+        "scope": {
+          "type": "object",
+          "description": "Scope. Scene: {type:\"scene\",scene_name:\"Level\"}. Project: {type:\"project\"}. Extension function: {type:\"extension\",extension_name:\"MyExtension\"} plus top-level function_name.",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "project",
+                "scene",
+                "external_layout",
+                "external_events",
+                "extension",
+                "custom_behavior",
+                "custom_object",
+                "custom_object_variant"
+              ]
+            },
+            "scene_name": {
+              "type": "string"
+            },
+            "external_layout_name": {
+              "type": "string"
+            },
+            "external_events_name": {
+              "type": "string"
+            },
+            "extension_name": {
+              "type": "string"
+            },
+            "custom_behavior_name": {
+              "type": "string"
+            },
+            "custom_object_name": {
+              "type": "string"
+            },
+            "variant_name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "extension_name",
+        "custom_object_name"
+      ],
+      "additionalProperties": true
+    }
+  },
+  "change_custom_object": {
+    "description": "change custom object. Inspect existing data first. Arguments follow the editor API; failures include corrective hints. ",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "extension_name": {
+          "type": "string"
+        },
+        "custom_object_name": {
+          "type": "string"
+        },
+        "delete_this_custom_object": {
+          "type": "boolean"
+        },
+        "delete_even_if_used": {
+          "type": "boolean"
+        },
+        "changed_settings": {
+          "type": "array",
+          "items": {}
+        },
+        "changed_variants": {
+          "type": "array",
+          "items": {}
+        },
+        "forward_child_object_functions": {
+          "type": "array",
+          "items": {}
+        },
+        "fit_area_to_children": {
+          "type": "string"
+        },
+        "changed_properties": {
+          "type": "array",
+          "items": {}
+        },
+        "scope": {
+          "type": "object",
+          "description": "Scope. Scene: {type:\"scene\",scene_name:\"Level\"}. Project: {type:\"project\"}. Extension function: {type:\"extension\",extension_name:\"MyExtension\"} plus top-level function_name.",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "project",
+                "scene",
+                "external_layout",
+                "external_events",
+                "extension",
+                "custom_behavior",
+                "custom_object",
+                "custom_object_variant"
+              ]
+            },
+            "scene_name": {
+              "type": "string"
+            },
+            "external_layout_name": {
+              "type": "string"
+            },
+            "external_events_name": {
+              "type": "string"
+            },
+            "extension_name": {
+              "type": "string"
+            },
+            "custom_behavior_name": {
+              "type": "string"
+            },
+            "custom_object_name": {
+              "type": "string"
+            },
+            "variant_name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "extension_name",
+        "custom_object_name"
+      ],
+      "additionalProperties": true
+    }
+  },
+  "create_custom_behavior": {
+    "description": "create custom behavior. Inspect existing data first. Arguments follow the editor API; failures include corrective hints. ",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "extension_name": {
+          "type": "string"
+        },
+        "custom_behavior_name": {
+          "type": "string"
+        },
+        "duplicated_custom_behavior_name": {
+          "type": "string"
+        },
+        "duplicated_from_extension_name": {
+          "type": "string"
+        },
+        "is_private": {
+          "type": "boolean"
+        },
+        "full_name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "object_type": {
+          "type": "string"
+        },
+        "scope": {
+          "type": "object",
+          "description": "Scope. Scene: {type:\"scene\",scene_name:\"Level\"}. Project: {type:\"project\"}. Extension function: {type:\"extension\",extension_name:\"MyExtension\"} plus top-level function_name.",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "project",
+                "scene",
+                "external_layout",
+                "external_events",
+                "extension",
+                "custom_behavior",
+                "custom_object",
+                "custom_object_variant"
+              ]
+            },
+            "scene_name": {
+              "type": "string"
+            },
+            "external_layout_name": {
+              "type": "string"
+            },
+            "external_events_name": {
+              "type": "string"
+            },
+            "extension_name": {
+              "type": "string"
+            },
+            "custom_behavior_name": {
+              "type": "string"
+            },
+            "custom_object_name": {
+              "type": "string"
+            },
+            "variant_name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "extension_name",
+        "custom_behavior_name"
+      ],
+      "additionalProperties": true
+    }
+  },
+  "change_custom_behavior": {
+    "description": "change custom behavior. Inspect existing data first. Arguments follow the editor API; failures include corrective hints. ",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "extension_name": {
+          "type": "string"
+        },
+        "custom_behavior_name": {
+          "type": "string"
+        },
+        "delete_this_custom_behavior": {
+          "type": "boolean"
+        },
+        "delete_even_if_used": {
+          "type": "boolean"
+        },
+        "changed_settings": {
+          "type": "array",
+          "items": {}
+        },
+        "changed_properties": {
+          "type": "array",
+          "items": {}
+        },
+        "changed_shared_properties": {
+          "type": "array",
+          "items": {}
+        },
+        "scope": {
+          "type": "object",
+          "description": "Scope. Scene: {type:\"scene\",scene_name:\"Level\"}. Project: {type:\"project\"}. Extension function: {type:\"extension\",extension_name:\"MyExtension\"} plus top-level function_name.",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "project",
+                "scene",
+                "external_layout",
+                "external_events",
+                "extension",
+                "custom_behavior",
+                "custom_object",
+                "custom_object_variant"
+              ]
+            },
+            "scene_name": {
+              "type": "string"
+            },
+            "external_layout_name": {
+              "type": "string"
+            },
+            "external_events_name": {
+              "type": "string"
+            },
+            "extension_name": {
+              "type": "string"
+            },
+            "custom_behavior_name": {
+              "type": "string"
+            },
+            "custom_object_name": {
+              "type": "string"
+            },
+            "variant_name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "extension_name",
+        "custom_behavior_name"
+      ],
+      "additionalProperties": true
+    }
+  },
+  "create_custom_function": {
+    "description": "create custom function. Inspect existing data first. Arguments follow the editor API; failures include corrective hints. ",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "function_name": {
+          "type": "string"
+        },
+        "duplicated_function_name": {
+          "type": "string"
+        },
+        "function_type": {},
+        "parameters": {
+          "type": "array",
+          "items": {}
+        },
+        "is_private": {
+          "type": "boolean"
+        },
+        "is_async": {
+          "type": "boolean"
+        },
+        "getter_name": {
+          "type": "string"
+        },
+        "full_name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "group": {
+          "type": "string"
+        },
+        "sentence": {
+          "type": "string"
+        },
+        "scope": {
+          "type": "object",
+          "description": "Scope. Scene: {type:\"scene\",scene_name:\"Level\"}. Project: {type:\"project\"}. Extension function: {type:\"extension\",extension_name:\"MyExtension\"} plus top-level function_name.",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "project",
+                "scene",
+                "external_layout",
+                "external_events",
+                "extension",
+                "custom_behavior",
+                "custom_object",
+                "custom_object_variant"
+              ]
+            },
+            "scene_name": {
+              "type": "string"
+            },
+            "external_layout_name": {
+              "type": "string"
+            },
+            "external_events_name": {
+              "type": "string"
+            },
+            "extension_name": {
+              "type": "string"
+            },
+            "custom_behavior_name": {
+              "type": "string"
+            },
+            "custom_object_name": {
+              "type": "string"
+            },
+            "variant_name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "function_name"
+      ],
+      "additionalProperties": true
+    }
+  },
+  "change_custom_function": {
+    "description": "change custom function. Inspect existing data first. Arguments follow the editor API; failures include corrective hints. ",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "function_name": {
+          "type": "string"
+        },
+        "delete_this_function": {
+          "type": "boolean"
+        },
+        "changed_settings": {
+          "type": "array",
+          "items": {}
+        },
+        "changed_parameters": {
+          "type": "array",
+          "items": {}
+        },
+        "scope": {
+          "type": "object",
+          "description": "Scope. Scene: {type:\"scene\",scene_name:\"Level\"}. Project: {type:\"project\"}. Extension function: {type:\"extension\",extension_name:\"MyExtension\"} plus top-level function_name.",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "project",
+                "scene",
+                "external_layout",
+                "external_events",
+                "extension",
+                "custom_behavior",
+                "custom_object",
+                "custom_object_variant"
+              ]
+            },
+            "scene_name": {
+              "type": "string"
+            },
+            "external_layout_name": {
+              "type": "string"
+            },
+            "external_events_name": {
+              "type": "string"
+            },
+            "extension_name": {
+              "type": "string"
+            },
+            "custom_behavior_name": {
+              "type": "string"
+            },
+            "custom_object_name": {
+              "type": "string"
+            },
+            "variant_name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "function_name"
+      ],
+      "additionalProperties": true
+    }
+  },
+  "read_full_docs": {
+    "description": "read full docs. Inspect existing data first. Arguments follow the editor API; failures include corrective hints. ",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string"
+        },
+        "extension_names": {
+          "type": "string"
+        }
+      },
+      "required": [],
+      "additionalProperties": true
+    }
+  },
+  "search_docs": {
+    "description": "search docs. Inspect existing data first. Arguments follow the editor API; failures include corrective hints. ",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string"
+        }
+      },
+      "required": [],
+      "additionalProperties": true
+    }
+  },
+  "create_or_update_plan": {
+    "description": "create or update plan. Inspect existing data first. Arguments follow the editor API; failures include corrective hints. ",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "tasks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "pending",
+                  "in_progress",
+                  "done",
+                  "voided"
+                ]
+              },
+              "dependsOn": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "id",
+              "title",
+              "description",
+              "status",
+              "dependsOn"
+            ]
+          }
+        }
+      },
+      "required": [],
+      "additionalProperties": true
+    }
+  },
+  "run_explorer_agent": {
+    "description": "run explorer agent. Inspect existing data first. Arguments follow the editor API; failures include corrective hints. ",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "prompt": {
+          "type": "string"
+        },
+        "short_title": {
+          "type": "string"
+        }
+      },
+      "required": [],
+      "additionalProperties": true
+    }
+  },
+  "run_edit_agent": {
+    "description": "run edit agent. Inspect existing data first. Arguments follow the editor API; failures include corrective hints. ",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "prompt": {
+          "type": "string"
+        },
+        "short_title": {
+          "type": "string"
+        }
+      },
+      "required": [],
+      "additionalProperties": true
+    }
+  },
+  "run_tests": {
+    "description": "run tests. Inspect existing data first. Arguments follow the editor API; failures include corrective hints. Delegate to a tester that runs local gameplay tools; tests must be supported by assertions and runner output.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "prompt": {
+          "type": "string"
+        },
+        "short_title": {
+          "type": "string"
+        }
+      },
+      "required": [],
+      "additionalProperties": true
+    }
+  },
+  "run_gameplay_test": {
+    "description": "run gameplay test. Inspect existing data first. Arguments follow the editor API; failures include corrective hints. ",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "test_name": {},
+        "source": {},
+        "persist": {},
+        "scope": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "project",
+                "extension"
+              ]
+            },
+            "extension_name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ]
+        },
+        "timeout_ms": {},
+        "screenshots": {},
+        "description": {}
+      },
+      "required": [],
+      "additionalProperties": true
+    }
+  },
+  "change_gameplay_tests": {
+    "description": "change gameplay tests. Inspect existing data first. Arguments follow the editor API; failures include corrective hints. ",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "changes": {},
+        "scope": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "project",
+                "extension"
+              ]
+            },
+            "extension_name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ]
+        }
+      },
+      "required": [],
+      "additionalProperties": true
+    }
+  },
+  "read_game_project_json": {
+    "description": "read game project json. Inspect existing data first. Arguments follow the editor API; failures include corrective hints. ",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "filter": {
+          "type": "object"
+        },
+        "maxDepth": {
+          "type": "integer"
+        },
+        "maxStringLength": {
+          "type": "integer"
+        },
+        "offset": {
+          "type": "integer"
+        },
+        "limit": {
+          "type": "integer"
+        },
+        "countOnly": {
+          "type": "boolean"
+        },
+        "scope": {
+          "type": "object",
+          "description": "Scope. Scene: {type:\"scene\",scene_name:\"Level\"}. Project: {type:\"project\"}. Extension function: {type:\"extension\",extension_name:\"MyExtension\"} plus top-level function_name.",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "project",
+                "scene",
+                "external_layout",
+                "external_events",
+                "extension",
+                "custom_behavior",
+                "custom_object",
+                "custom_object_variant"
+              ]
+            },
+            "scene_name": {
+              "type": "string"
+            },
+            "external_layout_name": {
+              "type": "string"
+            },
+            "external_events_name": {
+              "type": "string"
+            },
+            "extension_name": {
+              "type": "string"
+            },
+            "custom_behavior_name": {
+              "type": "string"
+            },
+            "custom_object_name": {
+              "type": "string"
+            },
+            "variant_name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [],
+      "additionalProperties": true
+    }
+  },
+  "search_object_asset_store": {
+    "description": "search object asset store. Inspect existing data first. Arguments follow the editor API; failures include corrective hints. ",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string"
+        },
+        "object_type": {
+          "type": "string"
+        }
+      },
+      "required": [],
+      "additionalProperties": true
+    }
+  },
+  "search_resource_store": {
+    "description": "search resource store. Inspect existing data first. Arguments follow the editor API; failures include corrective hints. ",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string"
+        },
+        "resource_kind": {
+          "type": "string"
+        }
+      },
+      "required": [],
+      "additionalProperties": true
+    }
+  },
+  "generate_events": {
+    "description": "generate events. Inspect existing data first. Arguments follow the editor API; failures include corrective hints. Generate native event JSON through a specialist, validated before applying.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "events_description": {
+          "type": "string"
+        },
+        "event_batches": {
+          "type": "array",
+          "items": {}
+        },
+        "objects_list": {
+          "type": "string"
+        },
+        "placement_hint": {
+          "type": "string"
+        },
+        "extension_names_list": {
+          "type": "string"
+        },
+        "estimated_complexity": {
+          "type": "number"
+        },
+        "function_name": {
+          "type": "string"
+        },
+        "scope": {
+          "type": "object",
+          "description": "Scope. Scene: {type:\"scene\",scene_name:\"Level\"}. Project: {type:\"project\"}. Extension function: {type:\"extension\",extension_name:\"MyExtension\"} plus top-level function_name.",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "project",
+                "scene",
+                "external_layout",
+                "external_events",
+                "extension",
+                "custom_behavior",
+                "custom_object",
+                "custom_object_variant"
+              ]
+            },
+            "scene_name": {
+              "type": "string"
+            },
+            "external_layout_name": {
+              "type": "string"
+            },
+            "external_events_name": {
+              "type": "string"
+            },
+            "extension_name": {
+              "type": "string"
+            },
+            "custom_behavior_name": {
+              "type": "string"
+            },
+            "custom_object_name": {
+              "type": "string"
+            },
+            "variant_name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "extension_names_list"
+      ],
+      "additionalProperties": true
+    }
+  },
+  "report_fulfilment_problem": {
+    "description": "report fulfilment problem. Inspect existing data first. Arguments follow the editor API; failures include corrective hints. ",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [],
+      "additionalProperties": true
+    }
+  },
+  "initialize_project": {
+    "description": "initialize project. Inspect existing data first. Arguments follow the editor API; failures include corrective hints. ",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "project_name": {
+          "type": "string"
+        },
+        "template_slug": {
+          "type": "string"
+        },
+        "also_read_existing_events": {
+          "type": "boolean"
+        },
+        "project_file_url": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "project_name",
+        "template_slug"
+      ],
+      "additionalProperties": true
+    }
+  },
+  "get_game_starter_summary": {
+    "description": "get game starter summary. Inspect existing data first. Arguments follow the editor API; failures include corrective hints. ",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "template_slug": {
+          "type": "string"
+        }
+      },
+      "required": [],
+      "additionalProperties": true
+    }
+  }
+}

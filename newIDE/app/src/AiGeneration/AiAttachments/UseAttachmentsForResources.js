@@ -1,4 +1,5 @@
 // @flow
+import { isCustomRequestId, invokeCustomAi } from '../Providers/CustomAiBridge';
 import * as React from 'react';
 import axios from 'axios';
 import AuthenticatedUserContext from '../../Profile/AuthenticatedUserContext';
@@ -65,12 +66,27 @@ export const useAttachmentsForResources = ({
   const getFiles = React.useCallback(
     async (attachmentIds: Array<string>) => {
       const files: { [attachmentId: string]: ?File } = {};
-      const attachmentIdsToDownload = [];
+      const attachmentIdsToDownload: Array<string> = [];
       new Set(attachmentIds).forEach(attachmentId => {
         const file = getFileOfUploadedAttachment(attachmentId);
         if (file) files[attachmentId] = file;
         else attachmentIdsToDownload.push(attachmentId);
       });
+      for (const attachmentId of attachmentIdsToDownload.filter(
+        isCustomRequestId
+      )) {
+        const stored = await invokeCustomAi('attachment-file', {
+          attachmentId,
+        });
+        const bytes = new Uint8Array(
+          atob(stored.base64)
+            .split('')
+            .map(character => character.charCodeAt(0))
+        );
+        files[attachmentId] = new File([bytes], stored.name, {
+          type: stored.mimeType,
+        });
+      }
       if (!profile) return files;
 
       // The API gives the downloads of a few attachments at a time.
@@ -83,10 +99,9 @@ export const useAttachmentsForResources = ({
           getAuthorizationHeader,
           {
             userId: profile.id,
-            attachmentIds: attachmentIdsToDownload.slice(
-              index,
-              index + MAX_ATTACHMENTS_PER_MESSAGE
-            ),
+            attachmentIds: attachmentIdsToDownload
+              .filter(id => !isCustomRequestId(id))
+              .slice(index, index + MAX_ATTACHMENTS_PER_MESSAGE),
           }
         );
         await Promise.all(

@@ -1,4 +1,6 @@
 // @flow
+import { getAiRequest } from './Providers/AiProvider';
+import { isCustomRequest, isCustomRequestId } from './Providers/CustomAiBridge';
 import * as React from 'react';
 import { type I18n as I18nType } from '@lingui/core';
 import {
@@ -21,7 +23,6 @@ import {
 } from './ExtensionsOutsideEditorChangesAccumulator';
 import { type EventsFunctionsExtensionsState } from '../EventsFunctionsExtensionsLoader/EventsFunctionsExtensionsContext';
 import {
-  getAiRequest,
   getAiRequestSuggestions,
   type AiRequest,
   type AiRequestMessage,
@@ -361,7 +362,7 @@ export const useProcessFunctionCalls = ({
     fileMetadata,
     onSaveProjectAsWithStorageProvider,
   });
-  const { generateEvents } = useGenerateEvents({ project });
+  const { generateEvents } = useGenerateEvents({ project, i18n });
   const { triggerUnsavedChanges } = React.useContext(UnsavedChangesContext);
 
   const { translatedObjectShortHeadersByType, fetchObjects } = React.useContext(
@@ -669,6 +670,12 @@ export const useProcessFunctionCalls = ({
           // Explorer sub-agent scripts are read-only: restrict their
           // `run_script` to non-mutating functions (defense in depth).
           runScriptReadOnly: isReadOnlyScriptContext,
+          customProvider: isCustomRequest(aiRequest),
+          customRole: aiRequest.role || undefined,
+          shouldStop: () => {
+            const current = aiRequestsRef.current[aiRequest.id];
+            return !!current && current.status === 'suspended';
+          },
           functionCalls: functionCallsToProcess.map(functionCall => ({
             name: functionCall.name,
             arguments: functionCall.arguments,
@@ -1036,6 +1043,7 @@ export const useAiRequestState = ({
         // Then ask for some.
         if (
           !selectedAiRequest ||
+          isCustomRequest(selectedAiRequest) ||
           (selectedAiRequest.mode !== 'agent' &&
             selectedAiRequest.mode !== 'orchestrator') ||
           isSendingAiRequest(selectedAiRequest.id) ||
@@ -1304,6 +1312,7 @@ export const useAiRequestState = ({
         // to allow the user to restore the project to that state later.
         if (
           !selectedAiRequest ||
+          isCustomRequest(selectedAiRequest) ||
           (selectedAiRequest.mode !== 'agent' &&
             selectedAiRequest.mode !== 'orchestrator') ||
           isSendingAiRequest(selectedAiRequest.id) ||
@@ -1518,11 +1527,11 @@ export const useAiRequestState = ({
   React.useEffect(
     () => {
       // Reset selected request if user logs out.
-      if (!profile) {
+      if (!profile && !isCustomRequestId(selectedAiRequestId)) {
         setSelectedAiRequestId(null);
       }
     },
-    [profile, setSelectedAiRequestId]
+    [profile, selectedAiRequestId, setSelectedAiRequestId]
   );
 
   React.useEffect(

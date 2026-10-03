@@ -1,7 +1,19 @@
 // @flow
-import * as React from 'react';
 import {
   getAiRequest,
+  getAiRequestSummaries,
+  updateAiRequest as apiUpdateAiRequest,
+  deleteAiRequest as apiDeleteAiRequest,
+  suspendAiRequest as apiSuspendAiRequest,
+} from './Providers/AiProvider';
+import {
+  isCustomAiEnabled,
+  isCustomRequest,
+  isCustomRequestId,
+  subscribeCustomAi,
+} from './Providers/CustomAiBridge';
+import * as React from 'react';
+import {
   getAiRequestStatuses,
   fetchAiSettings,
   type AiRequest,
@@ -9,11 +21,7 @@ import {
   type GenerationStatus,
   type AiRequestSummary,
   type AiRequestSummariesFilter,
-  getAiRequestSummaries,
   getAiRequestSummary,
-  updateAiRequest as apiUpdateAiRequest,
-  deleteAiRequest as apiDeleteAiRequest,
-  suspendAiRequest as apiSuspendAiRequest,
 } from '../Utils/GDevelopServices/Generation';
 import AuthenticatedUserContext from '../Profile/AuthenticatedUserContext';
 import { type EditorFunctionCallResult } from '../EditorFunctions';
@@ -246,7 +254,7 @@ export const useAiRequestsStorage = (): AiRequestStorage => {
       gameId: ?string,
       forceUri?: {| list: 'recents' | 'game', uri: string |},
     |}) => {
-      if (!profile) return;
+      if (!profile && !isCustomAiEnabled()) return;
 
       setIsLoading(true);
       setError(null);
@@ -256,13 +264,13 @@ export const useAiRequestsStorage = (): AiRequestStorage => {
           forceUri && forceUri.list === 'game'
             ? null
             : getAiRequestSummaries(getAuthorizationHeader, {
-                userId: profile.id,
+                userId: profile ? profile.id : 'local',
                 forceUri: forceUri ? forceUri.uri : null,
                 filter,
               }),
           gameId && (!forceUri || forceUri.list === 'game')
             ? getAiRequestSummaries(getAuthorizationHeader, {
-                userId: profile.id,
+                userId: profile ? profile.id : 'local',
                 forceUri: forceUri ? forceUri.uri : null,
                 filter,
                 gameId,
@@ -374,6 +382,13 @@ export const useAiRequestsStorage = (): AiRequestStorage => {
         const newAiRequest = updateFn(
           previousState.aiRequests[aiRequestId] || null
         );
+        const previousRequest = previousState.aiRequests[aiRequestId];
+        if (
+          isCustomRequest(newAiRequest) &&
+          previousRequest &&
+          (previousRequest.revision || 0) > (newAiRequest.revision || 0)
+        )
+          return previousState;
         return {
           ...previousState,
           aiRequests: {
@@ -394,13 +409,19 @@ export const useAiRequestsStorage = (): AiRequestStorage => {
     []
   );
 
+  React.useEffect(
+    () =>
+      subscribeCustomAi(request => updateAiRequest(request.id, () => request)),
+    [updateAiRequest]
+  );
+
   const refreshAiRequest = React.useCallback(
     async (aiRequestId: string): Promise<void> => {
-      if (!profile) return;
+      if (!profile && !isCustomRequestId(aiRequestId)) return;
 
       try {
         const updatedAiRequest = await getAiRequest(getAuthorizationHeader, {
-          userId: profile.id,
+          userId: profile ? profile.id : 'local',
           aiRequestId: aiRequestId,
         });
         updateAiRequest(updatedAiRequest.id, () => updatedAiRequest);
@@ -424,7 +445,7 @@ export const useAiRequestsStorage = (): AiRequestStorage => {
    */
   const loadAiRequest = React.useCallback(
     async (aiRequestId: string): Promise<void> => {
-      if (!profile) return;
+      if (!profile && !isCustomRequestId(aiRequestId)) return;
 
       setAiRequestLoadingStates(previousStates => ({
         ...previousStates,
@@ -432,13 +453,13 @@ export const useAiRequestsStorage = (): AiRequestStorage => {
       }));
       try {
         let aiRequest = await getAiRequest(getAuthorizationHeader, {
-          userId: profile.id,
+          userId: profile ? profile.id : 'local',
           aiRequestId,
         });
         if (aiRequestHasWorkInProgress(aiRequest, null)) {
           try {
             aiRequest = await apiSuspendAiRequest(getAuthorizationHeader, {
-              userId: profile.id,
+              userId: profile ? profile.id : 'local',
               aiRequestId,
             });
           } catch (error) {
@@ -497,7 +518,7 @@ export const useAiRequestsStorage = (): AiRequestStorage => {
 
   const renameAiRequest = React.useCallback(
     async (aiRequestId: string, title: string): Promise<void> => {
-      if (!profile) return;
+      if (!profile && !isCustomRequestId(aiRequestId)) return;
       const newTitle = title.trim() || null;
       const aiRequestSummary = state.aiRequestSummaries[aiRequestId];
       const previousTitle =
@@ -510,7 +531,7 @@ export const useAiRequestsStorage = (): AiRequestStorage => {
       try {
         await retryIfFailed({ times: 2 }, () =>
           apiUpdateAiRequest(getAuthorizationHeader, {
-            userId: profile.id,
+            userId: profile ? profile.id : 'local',
             aiRequestId,
             title: newTitle,
           })
@@ -533,7 +554,7 @@ export const useAiRequestsStorage = (): AiRequestStorage => {
 
   const setAiRequestArchived = React.useCallback(
     async (aiRequestId: string, archived: boolean): Promise<void> => {
-      if (!profile) return;
+      if (!profile && !isCustomRequestId(aiRequestId)) return;
       const aiRequestSummary = state.aiRequestSummaries[aiRequestId];
       const previousArchivedAt =
         (aiRequestSummary && aiRequestSummary.archivedAt) || null;
@@ -548,7 +569,7 @@ export const useAiRequestsStorage = (): AiRequestStorage => {
       try {
         const updatedAiRequest = await retryIfFailed({ times: 2 }, () =>
           apiUpdateAiRequest(getAuthorizationHeader, {
-            userId: profile.id,
+            userId: profile ? profile.id : 'local',
             aiRequestId,
             archived,
           })
@@ -576,7 +597,7 @@ export const useAiRequestsStorage = (): AiRequestStorage => {
 
   const deleteAiRequest = React.useCallback(
     async (aiRequestId: string): Promise<void> => {
-      if (!profile) return;
+      if (!profile && !isCustomRequestId(aiRequestId)) return;
 
       // Optimistic update: the chat disappears right away.
       setState(previousState => {
@@ -594,7 +615,7 @@ export const useAiRequestsStorage = (): AiRequestStorage => {
       try {
         await retryIfFailed({ times: 2 }, () =>
           apiDeleteAiRequest(getAuthorizationHeader, {
-            userId: profile.id,
+            userId: profile ? profile.id : 'local',
             aiRequestId,
           })
         );
@@ -613,7 +634,19 @@ export const useAiRequestsStorage = (): AiRequestStorage => {
     () => {
       // Reset AI requests when the user logs out.
       if (!profile) {
-        setState(emptyAiRequestsState);
+        setState(previous => ({
+          ...emptyAiRequestsState,
+          aiRequests: Object.fromEntries(
+            Object.entries(previous.aiRequests).filter(([id]) =>
+              isCustomRequestId(id)
+            )
+          ),
+          aiRequestSummaries: Object.fromEntries(
+            Object.entries(previous.aiRequestSummaries).filter(([id]) =>
+              isCustomRequestId(id)
+            )
+          ),
+        }));
         setAiRequestLoadingStates({});
       }
     },
@@ -959,9 +992,10 @@ export const AiRequestProvider = ({
   React.useEffect(
     () => {
       // Nothing can be selected when logged out (the AI requests are reset).
-      if (!profile) setSelectedAiRequestId(null);
+      if (!profile && !isCustomRequestId(selectedAiRequestId))
+        setSelectedAiRequestId(null);
     },
-    [profile]
+    [profile, selectedAiRequestId]
   );
 
   const [shouldWatchRequest, setShouldWatchRequest] = React.useState<boolean>(
@@ -1178,7 +1212,9 @@ export const AiRequestProvider = ({
       }
     };
 
-    const subAgentIds = Object.keys(activeSubAgentsRef.current);
+    const subAgentIds = Object.keys(activeSubAgentsRef.current).filter(
+      id => !isCustomRequestId(id)
+    );
     const subAgentIdSet = new Set(subAgentIds);
 
     const doFullFetch = async (aiRequestId: string) => {
@@ -1201,7 +1237,7 @@ export const AiRequestProvider = ({
         (lastMessage && lastMessage.messageId) || undefined;
       const fetchedAiRequest = await retryIfFailed({ times: 2 }, () =>
         getAiRequest(getAuthorizationHeader, {
-          userId: profile.id,
+          userId: profile ? profile.id : 'local',
           aiRequestId,
           outputFromMessageId,
         })
@@ -1237,6 +1273,7 @@ export const AiRequestProvider = ({
     const watchParent =
       !!selectedAiRequestId &&
       !!selectedAiRequest &&
+      !isCustomRequest(selectedAiRequest) &&
       aiRequestShouldBeWatched(selectedAiRequest);
     if (watchParent && selectedAiRequestId) {
       if (now - lastFullFetchTimeRef.current >= fullFetchIntervalInMs) {
@@ -1260,7 +1297,7 @@ export const AiRequestProvider = ({
     const statusOnlyPromise = (async () => {
       if (statusOnlyIds.length === 0) return;
       const statuses = await getAiRequestStatuses(getAuthorizationHeader, {
-        userId: profile.id,
+        userId: profile ? profile.id : 'local',
         aiRequestIds: statusOnlyIds,
       });
       const statusById: Map<string, GenerationStatus> = new Map(
@@ -1369,6 +1406,7 @@ export const AiRequestProvider = ({
   const getAiSettings = useAsyncLazyMemo(
     React.useCallback(
       async (): Promise<AiSettings | null> => {
+        if (isCustomAiEnabled()) return { aiRequest: { presets: [] } };
         try {
           const aiSettings = await retryIfFailed({ times: 2 }, () =>
             fetchAiSettings({
@@ -1427,10 +1465,12 @@ export const AiRequestProvider = ({
 
   const suspendAiRequest = React.useCallback(
     async (aiRequestId: string): Promise<void> => {
-      if (!profile) return;
+      if (!profile && !isCustomRequestId(aiRequestId)) return;
       // Dismiss any pending edit approval.
+      const resolver = editApprovalResolverRef.current;
       editApprovalResolverRef.current = null;
       setPendingEditApproval(null);
+      if (resolver) resolver(false);
 
       // Optimistic update: mark as suspended locally immediately so any in-flight
       // async code sees the suspended status on the next render.
@@ -1446,7 +1486,7 @@ export const AiRequestProvider = ({
       const suspendedRequest = await apiSuspendAiRequest(
         getAuthorizationHeader,
         {
-          userId: profile.id,
+          userId: profile ? profile.id : 'local',
           aiRequestId,
         }
       );

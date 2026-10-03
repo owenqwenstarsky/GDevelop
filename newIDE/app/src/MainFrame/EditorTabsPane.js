@@ -125,6 +125,7 @@ export type EditorTabsPaneCommonProps = {|
       createdProject?: gdProject,
     |}
   ) => Promise<?FileMetadata>,
+  onRestoreProjectJson?: (projectJson: string) => Promise<void>,
   onCheckoutVersion: (
     version: ExpandedCloudProjectVersion,
     options?: {| dontSaveCheckedOutVersionStatus?: boolean |}
@@ -377,6 +378,7 @@ const EditorTabsPane: React.ComponentType<{
     toggleProjectManager,
     saveProject,
     saveProjectAsWithStorageProvider,
+    onRestoreProjectJson,
     onCheckoutVersion,
     getOrLoadProjectVersion,
     openShareDialog,
@@ -840,6 +842,7 @@ const EditorTabsPane: React.ComponentType<{
                     onSave: saveProject,
                     onSaveProjectAsWithStorageProvider: saveProjectAsWithStorageProvider,
                     canSave,
+                    onRestoreProjectJson,
                     onCheckoutVersion,
                     getOrLoadProjectVersion,
                     onCreateEventsFunction,

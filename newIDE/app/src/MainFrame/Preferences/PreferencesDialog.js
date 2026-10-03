@@ -71,6 +71,7 @@ import DebugIcon from '../../UI/CustomSvgIcons/Debug';
 import ProjectManagerIcon from '../../UI/CustomSvgIcons/ProjectManager';
 import Object3dIcon from '../../UI/CustomSvgIcons/Object3d';
 import Grid2dIcon from '../../UI/CustomSvgIcons/Grid2d';
+import CustomAiSettings from '../../AiGeneration/Providers/CustomAiSettings';
 const electron = optionalRequire('electron');
 
 export type PreferencesSectionName =
@@ -1111,6 +1112,15 @@ const PreferencesDialog = ({
       case 'ask-ai':
         return {
           settings: [
+            ...(electron
+              ? [
+                  {
+                    id: 'custom-ai-provider',
+                    label: i18n._(t`AI provider and connection`),
+                    renderControl: () => <CustomAiSettings />,
+                  },
+                ]
+              : []),
             {
               id: 'show-ask-ai-button-in-title-bar',
               label: i18n._(t`Show "Ask AI" button in the title bar`),

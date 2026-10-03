@@ -250,6 +250,7 @@ const PoppedOutEditorContainerWindow = (props: Props): React.Node => {
                         onSaveProjectAsWithStorageProvider:
                           props.saveProjectAsWithStorageProvider,
                         canSave: props.canSave,
+                        onRestoreProjectJson: props.onRestoreProjectJson,
                         onCheckoutVersion: props.onCheckoutVersion,
                         getOrLoadProjectVersion: props.getOrLoadProjectVersion,
                         onCreateEventsFunction: props.onCreateEventsFunction,
